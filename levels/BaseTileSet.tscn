@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://l5k36aeod66v"]
+
+[ext_resource type="TileSet" uid="uid://dr1nxryhx7bv4" path="res://levels/BaseTileSet.tres" id="1_mnedn"]
+
+[node name="BaseTileSet" type="TileMap"]
+tile_set = ExtResource("1_mnedn")
+rendering_quadrant_size = 32
+format = 2

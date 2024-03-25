@@ -1,17 +1,17 @@
 [gd_scene load_steps=5 format=3 uid="uid://dpued6rw723hn"]
 
 [ext_resource type="Script" path="res://entities/players/PlatformerPlayerBase.cs" id="1_6mrsx"]
-[ext_resource type="Texture2D" uid="uid://cfphodkysi0c" path="res://resources/player/playerBaseHK.bmp" id="1_kodnm"]
 [ext_resource type="Script" path="res://entities/players/PlayerTakko.cs" id="2_1njkj"]
+[ext_resource type="Texture2D" uid="uid://bn2f1fmkt3ndt" path="res://resources/player/idle01.png" id="3_nc8sb"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_od5w7"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("1_kodnm")
+"texture": ExtResource("3_nc8sb")
 }],
 "loop": true,
-"name": &"default",
+"name": &"Idle",
 "speed": 5.0
 }]
 
@@ -23,3 +23,4 @@ script = ExtResource("2_1njkj")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="PlayerTakko"]
 sprite_frames = SubResource("SpriteFrames_od5w7")
+animation = &"Idle"

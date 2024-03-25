@@ -84,12 +84,22 @@ public partial class PlatformerPlayerBase : Node2D
 	// Null-Canceling Movement keystates
 	// This makes it so tha player can instantly change direction even if they are already
 	// holding down a movement key
-	public int nullCancellingKeystates;
+	public int lookKeystates;
+	
+	
+	
+	// The last valid vertical keystates
+	// Valid keystates are the ones that make sense
+	public int lastValidUpDown;
 	
 	
 	// The last valid horizontal keystates
-	// Valid keystates are the ones thatmake sense
+	// Valid keystates are the ones that make sense
 	public int lastValidLeftRight;
+	
+	
+		
+
 	
 	
 	
@@ -197,7 +207,32 @@ public partial class PlatformerPlayerBase : Node2D
 		
 		
 		
-		//! TODO: Add null cancelling movement here
+		// Null cancelling movement
+		
+		this.lookKeystates = this.keystates;
+		
+		int rawUpDown = this.keystates & PLAYER_INPUTFLAG_UPDOWN;
+		// If the raw keystates are invalid
+		if (rawUpDown == PLAYER_INPUTFLAG_UPDOWN) {
+			
+			// Get the last valid vertical movement and flip it around
+			this.lookKeystates = this.lookKeystates ^ this.lastValidUpDown;
+			
+		} else {
+			
+			// If it is valid we record them
+			this.lastValidUpDown = rawUpDown;
+			
+		}
+		
+		
+		int rawLeftRight = this.keystates & PLAYER_INPUTFLAG_LEFTRIGHT;
+		if (rawLeftRight == PLAYER_INPUTFLAG_LEFTRIGHT) {
+			this.lookKeystates = this.lookKeystates ^ this.lastValidLeftRight;
+		} else {
+			this.lastValidLeftRight = rawLeftRight;
+		}
+		
 		
 		
 	}

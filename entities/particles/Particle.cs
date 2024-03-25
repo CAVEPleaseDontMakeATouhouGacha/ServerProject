@@ -46,18 +46,42 @@ public partial class Particle : Node2D
 	public int timeoutTimer;
 	
 	
+	public AnimatedSprite2D animatedSprite2D;
+	
 		
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+				
+		AnimatedSprite2D animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+	
 	}
+	
+	
+	public void spawn(Vector2 spawnPos, Vector2 dir, float scalarSpeed, int timeout) {
+		
+		this.position = spawnPos;
+		//Position = spawnPos;
+		GlobalPosition = spawnPos;
+		
+		this.scalarSpeed = scalarSpeed;
+		
+		this.velocity.Y = dir.Y * scalarSpeed;
+		this.velocity.X = dir.X * scalarSpeed;
+		
+		this.timeoutTimer = timeout;
+		
+		
+		
+	}
+	
 	
 	
 	
 	public override void _PhysicsProcess(double delta) {
 		
 		// Get position
-		this.position = Position;
+		this.position = GlobalPosition;
 		
 		// Update position
 		this.position.Y = this.position.Y + this.velocity.Y;
@@ -68,12 +92,13 @@ public partial class Particle : Node2D
 		
 		if (this.timeoutTimer <= 0) {
 			
+			QueueFree();
 			
 		}
 		
 		
-		Position = this.position;
-	
+		//Position = this.position;
+		GlobalPosition = this.position;
 	}
 		
 	

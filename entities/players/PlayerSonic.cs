@@ -20,9 +20,6 @@ public partial class PlayerSonic : PlatformerPlayerBase
 		
 		
 		
-		// Get position
-		this.position = Position;
-		
 		// Reset momentum
 		//momentum.Y = 0;
 		//momentum.X = 0;
@@ -162,8 +159,35 @@ public partial class PlayerSonic : PlatformerPlayerBase
 		position.X = position.X + velocity.X; 
 		
 		
-		// Finally set position back
-		Position = position;
+	}
+	
+	
+	//======================
+	//! Physics update
+	//======================
+	public override void _PhysicsProcess(double delta) {
+		
+		// Grab Global Position
+		this.position = GlobalPosition;
+		
+		
+		// Build keystates
+		this.buildKeystates();
+	
+		// Run movement code
+		this.movement_sonic(delta);
+	
+	
+		
+		// Set back Global position
+		GlobalPosition = this.position;
+		
+		
+		// Run animation
+		//this.animation(delta);
+		
+		
+		
 		
 		
 	}

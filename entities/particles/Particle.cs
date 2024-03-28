@@ -1,6 +1,11 @@
 using Godot;
 using System;
 
+
+// Needed for funtion inlining
+using System.Runtime.CompilerServices;
+
+
 public partial class Particle : Node2D
 {
 	
@@ -10,6 +15,13 @@ public partial class Particle : Node2D
 	
 	public const int PARTICLE_STATE_ALIVE = 1;
 	
+	
+	// Shrink while timing out
+	public const int PARTICLE_FLAG_SHRINK = 1;
+	// Grow while timing out
+	public const int PARTICLE_FLAG_GROW = 2;
+	// Lower opacity while timing out
+	public const int PARTICLE_FLAG_TRANSPARENT = 4;	
 	
 	
 	//======================
@@ -21,7 +33,8 @@ public partial class Particle : Node2D
 	// The state of the particle
 	public int state;
 	
-	
+	// Flags for various other effects
+	public int flags;
 	
 	
 	
@@ -45,6 +58,10 @@ public partial class Particle : Node2D
 	// A timer that when it reaches 0 kills the particle
 	public int timeoutTimer;
 	
+	// The delta of diffenrence when growing and shriking
+	public float shrinkGrowDelta;
+	// The delta of diffenrence when becoming transparent
+	public float transparencyDelta;
 	
 	public AnimatedSprite2D animatedSprite2D;
 	
@@ -52,7 +69,7 @@ public partial class Particle : Node2D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-				
+		//this.TopLevel = true;
 		AnimatedSprite2D animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 	
 	}
@@ -60,9 +77,12 @@ public partial class Particle : Node2D
 	
 	public void spawn(Vector2 spawnPos, Vector2 dir, float scalarSpeed, int timeout) {
 		
-		this.position = spawnPos;
-		//Position = spawnPos;
-		GlobalPosition = spawnPos;
+		this.position.Y = spawnPos.Y;
+		this.position.X = spawnPos.X;
+		
+		//this.Position = this.position;
+		this.GlobalPosition = this.position;
+		
 		
 		this.scalarSpeed = scalarSpeed;
 		
@@ -76,12 +96,7 @@ public partial class Particle : Node2D
 	}
 	
 	
-	
-	
-	public override void _PhysicsProcess(double delta) {
-		
-		// Get position
-		this.position = GlobalPosition;
+	public void particle_movement(double delta) {
 		
 		// Update position
 		this.position.Y = this.position.Y + this.velocity.Y;
@@ -97,8 +112,30 @@ public partial class Particle : Node2D
 		}
 		
 		
+	}
+	
+	public void particle_animation(double delta) {
+		
+		// Update it directly without using bitflags as a check
+		
+		
+	}
+	
+	
+	
+	public override void _PhysicsProcess(double delta) {
+		
+		// Get position
+		this.position = GlobalPosition;
+		
+		particle_movement(delta);
+		
+		
 		//Position = this.position;
-		GlobalPosition = this.position;
+		this.GlobalPosition = this.position;
+		
+		particle_animation(delta);
+		
 	}
 		
 	

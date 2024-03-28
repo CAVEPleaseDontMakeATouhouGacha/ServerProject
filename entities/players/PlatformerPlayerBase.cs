@@ -1,6 +1,8 @@
 using Godot;
 using System;
 
+// Needed for funtion inlining
+using System.Runtime.CompilerServices;
 
 //[GlobalClass, Icon("res://Stats/StatsIcon.svg")]
 public partial class PlatformerPlayerBase : Node2D
@@ -25,6 +27,17 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	public const int TILETYPE_EMPTY = 0;
 	public const int TILETYPE_FULLSOLID = 1;
+	
+	// PLayer had no collision with a tile
+	public const int TILECOLRES_NONE = 0;
+	// Player touched ground tile
+	public const int TILECOLRES_GROUND = 1;
+	// Player touched ceiling tile
+	public const int TILECOLRES_CEILING = 2;
+	// Player touched left wall tile
+	public const int TILECOLRES_LEFTWALL = 3;
+	// Player touched right wall tile
+	public const int TILECOLRES_RIGHTWALL = 4;
 	
 	
 	
@@ -63,6 +76,10 @@ public partial class PlatformerPlayerBase : Node2D
 	public const int PLAYER_STATEFLAG_CANCELING = 16;
 	// When this flag is 1 the player is invincible
 	public const int PLAYER_STATEFLAG_INVINCIBLE = 32;
+	
+	
+	
+	
 	
 	//======================
 	//! Members
@@ -126,8 +143,11 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	// Direction Y, -1 for up, +1 for down, 0 for no movement
 	// Direction X, -1 for left, +1 for right, 0 for no movement
-	public Vector2 direction;
+	public Vector2 moveDirection;
 	
+	// The direction the player is looking at,
+	// Used as a base to spawn projectiles
+	public Vector2 lookDirection;
 	
 	//! Jump members
 	
@@ -135,20 +155,22 @@ public partial class PlatformerPlayerBase : Node2D
 	public int jumpsLeft;
 	
 	
+	// A timer that while it's biger than 0 makes it so 
+	// the player cannot control the character
+	// This is set by some melee moves so the player needs to take a risk and commit
+	public int noControlTimer;
+	
 	
 	//! Dash members
 	
 	
 	// The time in ticks of how much longer the dash will last
 	// Reset upon touching the ground
-	public int dashStaminaTime;
+	public int dashStaminaTimer;
 	
-	//! DEPRECATED? Just makes dashing feel worse 
-	// The resting time between dashes
-	//int dashRestTime;
 	
 	// The time the player will retain the dash speed after dashing
-	public int retainDashSpeedTime;
+	//public int retainDashSpeedTime;
 	
 	// The amount of air dashes the player can do it the air
 	public int airDashesLeft;
@@ -158,7 +180,33 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	// The time the player has been charging to fire a shot, starts at chargeShotTimeLength
 	// and goes down every tick until it reaches 0, once player releases the button goes back to chargeShotTimeLength
-	public int chargeShotTime;
+	public int chargeShotTimer;
+	
+	
+	// Melee
+	
+	//! TODO: Maybe make this state flags?
+	
+	// If the player can do the bicycle kick
+	public bool canDoBikeKick;
+
+	// If the player can do the hundred kicks move
+	public bool canDoHundredKicks;
+	
+	// Hitboxes
+	
+	// The timer that tells if the player is invincible and for how much
+	public int invincibilityTimer;
+	
+	// If we are going to use a timer for this we won't need a bit flag
+	public int grazingTimer;
+	public int cancelingTimer;
+	
+	public float rectHeight = 65.0f;
+	public float rectWidth = 32.0f;  
+	
+	public float circleRadius = 32.0f;
+	public float circleRadiusSqrd = 32.0f * 32.0f;
 	
 	// Parents
 	
@@ -178,6 +226,7 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	// Build keystates for replays and for input to be all in one place
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void buildKeystates() {
 		
 		/*
@@ -249,6 +298,19 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	public int tileCollision_groundCeiling(float sensorOffsetY) {
 		
+		
+		
+		
+		float tileHeight = -16;
+		
+		// If we are checking for ground we move 16 pixels up, if we are using ceilings we go down
+		if (sensorOffsetY < 0.0) {
+			
+			tileHeight = +16;
+			
+		}
+		
+		
 		// Check 3 tiles bellow
 		
 		Vector2I tileSensor = new Vector2I();
@@ -268,31 +330,53 @@ public partial class PlatformerPlayerBase : Node2D
 		while (tileCheckNum > 0) {
 			
 			TileData tile = tilemap.GetCellTileData(0, tileSensor);
+			
+			// If there is no tile there move to the next one
 			if (tile == null) {
-				return Int32.MaxValue;
-				GD.Print("No tile found");
+				
+				tileCheckNum = tileCheckNum - 1;
+				tileSensor.Y = tileSensor.Y + 1;
+				continue;
 			}
-			Variant tileType = tile.GetCustomDataByLayerId(TILEDATA_TYPE);
 			
-			GD.Print("This type is " + tileType.GetType());
-			GD.Print("Value " + tileType);
-			Variant temp = 1;
-			return Int32.MaxValue;
 			
-			//if (tileType == temp) {
+			int tileType = tile.Terrain;
+			
+			
+			switch (tileType) {
 				
-				// There was collision
-				//return tileSensor.Y;
+				case TILETYPE_EMPTY: {
+					
+					// Do nothing, move to the next tile
+					break;
+				}
 				
-			//}
+				case TILETYPE_FULLSOLID: {
+					
+					Vector2 tilePos = tilemap.MapToLocal(tileSensor);
+					tilePos = this.ToGlobal(tilePos);
+					
+					tilePos.Y = tilePos.Y + tileHeight;
+					
+					this.position.Y = tilePos.Y;
+					
+					return TILECOLRES_GROUND;
+					
+					break;
+				}
+				
+				
+				
+			}
 			
 			
 			// Go to the next tile 
 			tileSensor.Y = tileSensor.Y + 1;
+			tileCheckNum = tileCheckNum - 1;
 		}
 		
 		
-		return Int32.MaxValue;
+		return TILECOLRES_NONE;
 		
 		
 	}
@@ -359,12 +443,7 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-		
-		
-	}
+
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)

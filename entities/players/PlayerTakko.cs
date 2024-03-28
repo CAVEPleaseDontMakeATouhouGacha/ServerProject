@@ -1,10 +1,16 @@
 using Godot;
 using System;
 
+// Needed for funtion inlining
+using System.Runtime.CompilerServices;
+
+
 public partial class PlayerTakko : PlatformerPlayerBase
 {
 	
-	
+	// Things we can spawn
+	PackedScene particleScene = GD.Load<PackedScene>("res://entities/particles/Particle.tscn");
+	PackedScene shotScene = GD.Load<PackedScene>("res://entities/players/shots/Shot.tscn");
 	
 	
 	// OG Megaman X constants
@@ -42,6 +48,19 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	//float ordinalDashSpeed = dashSpeed * 0.7071067f;
 	
 	
+	//! Melee constants
+	//public int cMaxAerialAttacks = 1;
+	
+	
+	//! Shot constants
+	// Takes one second and a half to reach max charge shot
+	// Can shoot at half that time for a weaker shot
+	// Weaker shot should not have half the damage of the max one
+	const int cMaxChargeShotLength = 180;
+	// Timer has to be at least this value to shoot a weak shot
+	const int cWeakChargeShot = 150;
+	
+	
 	
 	//======================
 	//! Melee functions
@@ -50,7 +69,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	public void melee_takko(double delta) {
 		
 		
-		// Slam attack
+		// Handle Aerial attaks
 		
 		// Only do a slam if we are in the air
 		if ((this.flags & PLAYER_STATEFLAG_GROUNDED) != PLAYER_STATEFLAG_GROUNDED) {
@@ -58,16 +77,107 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			// If player pressed melee
 			if ((this.keystates & PLAYER_INPUTFLAG_MELEE) == PLAYER_INPUTFLAG_MELEE) {
 				
+				// Perform slam
 				// If player is holding down
 				if ((this.keystates & PLAYER_INPUTFLAG_DOWN) == PLAYER_INPUTFLAG_DOWN) {
 					
+					// Cancel out of dashing
+					this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+					
+					// Do a slam
 					// Add donwards velocity
 					this.velocity.Y = this.velocity.Y + 15.0f; 
 					
 				}
 				
+				// Perform a bike kick
+				if ((this.keystates & PLAYER_INPUTFLAG_UP) == PLAYER_INPUTFLAG_UP) {
+					
+					if (this.canDoBikeKick == true) {
+						
+						
+						this.canDoBikeKick = false;
+						
+						// Cancel out of dashing
+						this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+					
+						// Add small upwards velocity
+						this.velocity.Y = this.velocity.Y - 4.0f; 
+						
+						
+					}
+
+				}
+				
+				
+				
 			}
 				
+			
+		}
+		
+		
+		// Handle ground attacks
+		if ((this.flags & PLAYER_STATEFLAG_GROUNDED) == PLAYER_STATEFLAG_GROUNDED) {
+			
+			
+			// If player pressed melee
+			if ((this.keystates & PLAYER_INPUTFLAG_MELEE) == PLAYER_INPUTFLAG_MELEE) {
+			
+				// Perform Cyclone
+				// If player is holding up
+				if ((this.keystates & PLAYER_INPUTFLAG_UP) == PLAYER_INPUTFLAG_UP) {
+					
+					// Cancel out of dashing
+					this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+					// We are not grounded
+					this.flags = this.flags & ~PLAYER_STATEFLAG_GROUNDED;
+					// We are not jumping
+					this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+					// And we cannot jump
+					this.jumpsLeft = 0;
+				
+					// We can graze through bullets or else this move would be really bad
+					this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+				
+					// Add upwards velocity
+					this.velocity.Y = -15.0f; 
+					
+				}
+				
+				
+				// Perform a bike kick
+				if ((this.keystates & PLAYER_INPUTFLAG_DOWN) == PLAYER_INPUTFLAG_DOWN) {
+					
+					if (this.canDoBikeKick == true) {
+						
+						
+						this.canDoBikeKick = false;
+						
+						// Cancel out of dashing
+						this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+						// We are not grounded
+						this.flags = this.flags & ~PLAYER_STATEFLAG_GROUNDED;
+						// We are not jumping
+						this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+						// And we cannot jump
+						this.jumpsLeft = 0;
+					
+						// Add small upwards velocity
+						this.velocity.Y = this.velocity.Y - 4.0f; 
+						
+						
+					}
+
+				}
+				
+			
+				
+			}
+			
+			
+			
+		
 			
 		}
 		
@@ -83,38 +193,48 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	
 	public void shooting_takko(double delta) {
 		
-		// Takes one second and a half to reach max charge shot
-		// Can shoot at half that time for a weaker shot
-		// Weaker shot should not have half the damage of the max one
-		const int maxChargeShotLength = 180;
-		// Timer has to be at least this value to shoot a weak shot
-		const int weakChargeShot = 150;
-		
+
 		
 		if ((this.keystates & PLAYER_INPUTFLAG_SHOT) != PLAYER_INPUTFLAG_SHOT) {
 		
-			// Fire the shot, if there is one
-			if (this.chargeShotTime <= weakChargeShot) {
+			// Fire a small shot
+			if (this.chargeShotTimer <= cWeakChargeShot) {
+				
+				Shot smallShot = shotScene.Instantiate<Shot>();
+				
+				// Spawn the Shot by adding it to the Main scene.
+				AddChild(smallShot);
+				// Only after do we set members
+				smallShot.spawnSmall(this.position.X, this.position.Y, this.lookDirection);
+			
+				
+	
 				
 				
+			} else if (this.chargeShotTimer <= 0) {
 				
-			} else if (this.chargeShotTime <= 0) {
+				Shot bigShot = shotScene.Instantiate<Shot>();
 				
+				// Spawn the Shot by adding it to the Main scene.
+				AddChild(bigShot);
+				// Now set members
+				bigShot.spawnBig(this.position.X, this.position.Y, this.lookDirection);
+			
 				
 				
 			}
 			
-			this.chargeShotTime = maxChargeShotLength;
+			this.chargeShotTimer = cMaxChargeShotLength;
+			
+		} else {
+			
+			//if ((this.keystates & PLAYER_INPUTFLAG_SHOT) == PLAYER_INPUTFLAG_SHOT) {
+			// The player is holding down the shoot button
+			this.chargeShotTimer = this.chargeShotTimer - 1;
 			
 		}
-		
-		
-		
-		if ((this.keystates & PLAYER_INPUTFLAG_SHOT) == PLAYER_INPUTFLAG_SHOT) {
-		
-			this.chargeShotTime = this.chargeShotTime - 1;
-		
-		}
+	
+	
 		
 	}
 	
@@ -126,29 +246,28 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	
 	//! Megaman Z Styled movement
 	
-	
-	public void movement_takko_handleJump(double delta) {
-		
-		
-	}
-	
-	public void movement_takko_handleDash(double delta) {
-		
-		
-	}
-	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void movement_takko_handleHorizontal(double delta) {
 		
 		
 	}
 	
 	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movement_takko_handleJump(double delta) {
+		
+		
+	}
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movement_takko_handleDash(double delta) {
+		
+		
+	}
+	
+	
+	
 	public void movement_takko(double delta) {
-		
-		
-
-		// Get position
-		this.position = Position;
 		
 		
 		// Reset velocity
@@ -159,8 +278,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// Calculate directions
 		
 		// Get horizontal input in bitflags
-		int verticalInput = (this.keystates & PLAYER_INPUTFLAG_UPDOWN);
-		int horizontalInput = (this.keystates & PLAYER_INPUTFLAG_LEFTRIGHT) >> 2;
+		int verticalInput = (this.lookKeystates & PLAYER_INPUTFLAG_UPDOWN);
+		int horizontalInput = (this.lookKeystates & PLAYER_INPUTFLAG_LEFTRIGHT) >> 2;
 		
 		// 0 movement if nothing is being pressed
 		// -1 if player is holding left
@@ -168,10 +287,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// 0 if player is holding both
 		float[] directionLookup = {0.0f, -1.0f, +1.0f, 0.0f};
 		
-		this.direction.Y = directionLookup[verticalInput];
-		this.direction.X = directionLookup[horizontalInput];
+		this.moveDirection.Y = directionLookup[verticalInput];
+		this.moveDirection.X = directionLookup[horizontalInput];
 		
-		
+		if (this.moveDirection.X != 0) {
+			// Record the last valid moveDirection as lookDirection
+			this.lookDirection.X = this.moveDirection.X;
+		}
 		
 		
 		
@@ -182,7 +304,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// Handle normal grounded and airborne horizonal velocity
 			
 		// Calculate normal movement speed		
-		this.velocity.X = this.direction.X * this.scalarSpeed;
+		this.velocity.X = this.moveDirection.X * this.scalarSpeed;
 	
 		
 		
@@ -289,7 +411,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		if (bCanStartOmniDash == 1) {
 			
 			// And if we have stamina left
-			if (this.dashStaminaTime > 0) {
+			if (this.dashStaminaTimer > 0) {
 						
 				// If we have enough air dashes, ground constantly resets them so no need
 				// for ground check
@@ -298,12 +420,17 @@ public partial class PlayerTakko : PlatformerPlayerBase
 					this.flags = this.flags | PLAYER_STATEFLAG_DASHING;
 					this.flags = this.flags | PLAYER_STATEFLAG_GRAZING;
 					this.flags = this.flags | PLAYER_STATEFLAG_CANCELING;
+					
+					
+					// Allow the player to do aerial attacks again
+					this.canDoBikeKick = true;
+					this.canDoHundredKicks = true;
 						
 					// Cancel push forces
 					this.pushForce.Y = 0;
 					this.pushForce.X = 0;
 							
-					// We need a check so we can do a upwards dash and two aerials one
+					// We need a check so we can do a upwards dash and two aerials ones
 					if ((this.flags & PLAYER_STATEFLAG_GROUNDED) != PLAYER_STATEFLAG_GROUNDED) {
 								
 						// Take away one airDash if we are in the air
@@ -330,7 +457,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		if ((this.flags & PLAYER_STATEFLAG_DASHING) == PLAYER_STATEFLAG_DASHING) {
 			
 			
-			float isCardinal = direction.Y * direction.X;
+			float isCardinal = this.moveDirection.Y * this.moveDirection.X;
 			float currDashSpeed = 0.0f;
 			
 			if (isCardinal != 0) {
@@ -346,11 +473,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			}
 			
 			// Apply omnidirectional movement
-			this.velocity.Y = this.direction.Y * currDashSpeed;
-			this.velocity.X = this.direction.X * currDashSpeed;
+			this.velocity.Y = this.moveDirection.Y * currDashSpeed;
+			this.velocity.X = this.moveDirection.X * currDashSpeed;
 			
 			// Decrease dash stamina timer
-			this.dashStaminaTime = this.dashStaminaTime - 1;
+			this.dashStaminaTimer = this.dashStaminaTimer - 1;
 			
 			
 			
@@ -394,7 +521,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			int dashInput = this.keystates & PLAYER_INPUTFLAG_DASH;
 			
 			// If player isn't holding the dash button anymore or timer has run out
-			if ((this.dashStaminaTime <= 0) || (dashInput != PLAYER_INPUTFLAG_DASH)) {
+			if ((this.dashStaminaTimer <= 0) || (dashInput != PLAYER_INPUTFLAG_DASH)) {
 				
 				// Dashing has ended
 				this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
@@ -437,16 +564,15 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 		
-		/*
-		// Is on ground?
-		int bOnGround = tileCollision_groundCeiling(+65.5f);
-		if (bOnGround != Int32.MaxValue) {
-			this.position.Y = 0;
-		}
-		*/
 		
-		// Clamp position
-		//if (bOnGround != Int32.MaxValue) {
+		// Is on ground?
+		//int bOnGround = tileCollision_groundCeiling(+65.5f);
+		
+		
+		
+		
+		
+		//if (bOnGround == TILECOLRES_GROUND) {
 		if (this.position.Y > 900) {
 			
 			//this.position.Y = (float)bOnGround;
@@ -464,15 +590,18 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			this.jumpsLeft = 1;
 			
 			// Reset dash
-			this.dashStaminaTime = cDashDurationTimeLength;
+			this.dashStaminaTimer = cDashDurationTimeLength;
 			this.scalarSpeed = cWalkSpeed;
 			this.airDashesLeft = 2;
 			
+			
+			// Allow the player to do aerial attacks again
+			this.canDoBikeKick = true;
+			this.canDoHundredKicks = true;
+			
+			
 		}
 		
-		
-		// Finally set position back
-		Position = this.position;
 		
 	}
 	
@@ -486,11 +615,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	
 	public void animation(double delta) {
 		
-		if (this.direction.X > 0) {
+		if (this.moveDirection.X > 0) {
 			
 			this.animatedSprite2D.FlipH = false;
 			
-		} else if (this.direction.X < 0) {
+		} else if (this.moveDirection.X < 0) {
 			
 			this.animatedSprite2D.FlipH = true;
 			
@@ -499,6 +628,28 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// If we are moving fast we let out after images
 		if ((this.flags & PLAYER_STATEFLAG_DASHING) == PLAYER_STATEFLAG_DASHING) {
 		//if ((this.scalarSpeed > cWalkSpeed) {
+			
+			Particle afterImage = particleScene.Instantiate<Particle>();
+			// Spawn the afterimage by adding it to the Main scene.
+			//AddChild(afterImage);
+			
+			// Add after image to level
+			GetParent<Node2D>().AddChild(afterImage);
+			
+			Vector2 nomove = new Vector2(0.0f, 0.0f);
+			int afterImageDuration = 30;
+			afterImage.spawn(this.position, nomove, 0.0f, 30);
+			//afterImage.spawn(GlobalPosition, nomove, 0.0f, 120);
+			
+			SpriteFrames newFrames = new SpriteFrames();
+			newFrames.AddAnimation("still");
+			
+			//newFrames.AddFrame("still", this.animatedSprite2D.GetSpriteFrames.Get, );
+			//afterImage.animatedSprite2D.SetSpriteFrames(this.animatedSprite2D.GetSpriteFrames);
+			//afterImage.animatedSprite2D.SpriteFrames = this.animatedSprite2D.SpriteFrames;
+			//afterImage.animatedSprite2D.Play("Idle", 0.0f, false);
+			
+			
 			
 			
 		}
@@ -515,6 +666,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	//======================
 	public override void _PhysicsProcess(double delta) {
 		
+		// Grab Global Position
+		this.position = this.GlobalPosition;
+		// Record previous position
+		this.prevPosition = this.position;
+		
 		
 		// Build keystates
 		this.buildKeystates();
@@ -530,9 +686,29 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// Graze bullets that are grazeable and cancel those that are cancelable
 		// and of course collide with them
 		
+		this.shooting_takko(delta);
+		
+		
+		if (Input.IsActionPressed("INPUT_DEBUG") == true) {
+			
+			this.position.Y = 000;
+			this.position.X = 100;
+			this.velocity.Y = 0;
+		}
+		
+		
+		// Set back Global position
+		this.GlobalPosition = this.position;
+		
 		
 		// Run animation
 		this.animation(delta);
+		
+		
+		
+		
+		
+		
 	}
 	
 	
@@ -545,15 +721,23 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	public override void _Ready()
 	{
 		
+		this.TopLevel = true;
 		this.initPlatformerPlayerBase();
 		
-		int nah = tileCollision_groundCeiling(+65.5f);
+		// Dashing
+		this.airDashesLeft = 2;
+		this.dashStaminaTimer = cDashDurationTimeLength;
 		
 		//! TODO: Put constants here
-		chargeShotTime = 180;
+		this.chargeShotTimer = cMaxChargeShotLength;
 		
 		
-		airDashesLeft = 2;
+		
+		
+		this.canDoBikeKick = true;
+		this.canDoHundredKicks = true;
+		
+		
 		
 	}
 	

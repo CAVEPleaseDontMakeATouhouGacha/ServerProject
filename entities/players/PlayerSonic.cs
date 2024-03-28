@@ -168,7 +168,7 @@ public partial class PlayerSonic : PlatformerPlayerBase
 	public override void _PhysicsProcess(double delta) {
 		
 		// Grab Global Position
-		this.position = GlobalPosition;
+		this.position = this.GlobalPosition;
 		
 		
 		// Build keystates
@@ -180,7 +180,7 @@ public partial class PlayerSonic : PlatformerPlayerBase
 	
 		
 		// Set back Global position
-		GlobalPosition = this.position;
+		this.GlobalPosition = this.position;
 		
 		
 		// Run animation

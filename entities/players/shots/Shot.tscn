@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://cadxmajlp7l25"]
+
+[ext_resource type="Script" path="res://entities/players/shots/Shot.cs" id="1_rkodf"]
+[ext_resource type="Texture2D" uid="uid://c51fsemorag18" path="res://resources/player/shots/bigShot.bmp" id="2_x10rc"]
+[ext_resource type="Texture2D" uid="uid://bim28xfuxbku0" path="res://resources/player/shots/smallShot.bmp" id="3_a0mgs"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_p7ubc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_x10rc")
+}],
+"loop": true,
+"name": &"BigShot",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_a0mgs")
+}],
+"loop": true,
+"name": &"SmallShot",
+"speed": 5.0
+}]
+
+[node name="Shot" type="Node2D"]
+script = ExtResource("1_rkodf")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_p7ubc")
+animation = &"SmallShot"

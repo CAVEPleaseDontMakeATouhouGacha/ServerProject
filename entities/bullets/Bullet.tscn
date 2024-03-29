@@ -1,8 +1,36 @@
-[gd_scene load_steps=2 format=3 uid="uid://60gw7ypy2ewn"]
+[gd_scene load_steps=5 format=3 uid="uid://60gw7ypy2ewn"]
 
 [ext_resource type="Script" path="res://entities/bullets/Bullet.cs" id="1_3duyn"]
+[ext_resource type="Texture2D" uid="uid://btdkmv073xotq" path="res://resources/bullets/DecayCloud.bmp" id="2_b0mbf"]
+[ext_resource type="Texture2D" uid="uid://83xc6hith5ut" path="res://resources/bullets/DelayCloud.bmp" id="3_rar4n"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_uxrru"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_b0mbf")
+}],
+"loop": true,
+"name": &"Decay",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_rar4n")
+}],
+"loop": true,
+"name": &"Delay",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"Pellet",
+"speed": 5.0
+}]
 
 [node name="Bullet" type="Node2D"]
 script = ExtResource("1_3duyn")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_uxrru")
+animation = &"Pellet"

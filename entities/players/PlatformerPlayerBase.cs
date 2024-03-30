@@ -61,21 +61,48 @@ public partial class PlatformerPlayerBase : Node2D
 	public const int PLAYER_INPUTFLAG_LEFTRIGHT = 12;
 	public const int PLAYER_INPUTFLAG_ALLMOVEMENT = 15;
 	
+	
+	
+	// Player States
+	
+	// Player is on the ground with full control
+	public const int PLAYER_STATE_GROUNDED = 1;
+	
+	// Player is on the air with full control, but did not jump
+	public const int PLAYER_STATE_AIRBORNE = 2;
+	
+	// Player is jumping through the air on their own volition
+	public const int PLAYER_STATE_JUMPING = 3;
+	
+	//! TODO: Maybe add more specific states?
+	// Player is dashing
+	public const int PLAYER_STATE_DASHING = 4;
+	public const int PLAYER_STATE_DASHINGGROUND = 5;
+	public const int PLAYER_STATE_DASHINGAIR = 6;
+
+	
+	// Player is doing a melee attack
+	
+	public const int PLAYER_STATE_ATTACK = 7;
+	public const int PLAYER_STATE_ATTACKGROUND = 8;
+	public const int PLAYER_STATE_ATTACKAIR = 9;
+	
+	
 	// General bitflags 
 	
 	// When this state flag is 1 the player is grounded, if 0 the player is airborne
-	public const int PLAYER_STATEFLAG_GROUNDED = 1;
+	public const int PLAYER_BITFLAG_GROUNDED = 1;
 	// When this state flag is 1 the player is jumping
-	public const int PLAYER_STATEFLAG_JUMPING = 2;
+	public const int PLAYER_BITFLAG_JUMPING = 2;
 	// When this state flag is 1 the player is OmniDashing
-	public const int PLAYER_STATEFLAG_DASHING = 4;
+	public const int PLAYER_BITFLAG_DASHING = 4;
 	// When this state flag is 1 the player is Grazing bullets, some melee attacks need this
 	// or thewy will be underwhelming
-	public const int PLAYER_STATEFLAG_GRAZING = 8;
+	public const int PLAYER_BITFLAG_GRAZING = 8;
 	// When this state flag is 1 the player cancels bullets by touching them
-	public const int PLAYER_STATEFLAG_CANCELING = 16;
+	public const int PLAYER_BITFLAG_CANCELING = 16;
 	// When this flag is 1 the player is invincible
-	public const int PLAYER_STATEFLAG_INVINCIBLE = 32;
+	public const int PLAYER_BITFLAG_INVINCIBLE = 32;
 	
 	
 	
@@ -153,6 +180,15 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	// Checks if character can jump, reset upon touching the gound
 	public int jumpsLeft;
+	
+	// The force of the jump
+	public float jumpForce;
+	
+	// Gravity of the character
+	public float gravity;
+	// Max velocity when falling
+	public float terminalFallSpeed;
+	
 	
 	
 	// A timer that while it's biger than 0 makes it so 
@@ -288,6 +324,128 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	
+	
+	//======================
+	//! General Movement Functions
+	//======================
+	
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_calculateDirections(double delta) {
+		
+		// Calculate directions
+		
+		// Get horizontal input in bitflags
+		int verticalInput = (this.lookKeystates & PLAYER_INPUTFLAG_UPDOWN);
+		int horizontalInput = (this.lookKeystates & PLAYER_INPUTFLAG_LEFTRIGHT) >> 2;
+		
+		// 0 movement if nothing is being pressed
+		// -1 if player is holding left
+		// +1 if player is holding right
+		// 0 if player is holding both
+		float[] directionLookup = {0.0f, -1.0f, +1.0f, 0.0f};
+		
+		this.moveDirection.Y = directionLookup[verticalInput];
+		this.moveDirection.X = directionLookup[horizontalInput];
+		
+		if (this.moveDirection.X != 0) {
+			// Record the last valid moveDirection as lookDirection
+			this.lookDirection.X = this.moveDirection.X;
+		}
+		
+		
+	}
+	
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_applyGravity(double delta) {
+		
+		// Apply gravity to Y velocity
+		this.velocity.Y = this.velocity.Y + this.gravity;
+		
+		//!TODO: Maybe use a temporay variable next so we can break the fall speed limit
+		
+		// If we reached terminal velocity, keep it like that
+		if (this.velocity.Y >= this.terminalFallSpeed) {
+				
+			this.velocity.Y = this.terminalFallSpeed;
+		}
+		
+	}
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool movementGeneral_startJump(double delta) {
+		
+		// Handle jumping, yes for one tick the jump receives no gravity
+		if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+			
+			// If there are jumps left
+			if (this.jumpsLeft > 0) {
+				
+				
+				// No longer grounded
+				this.state = PLAYER_STATE_JUMPING;
+				this.flags = flags & ~PLAYER_BITFLAG_GROUNDED;
+				this.flags = flags | PLAYER_BITFLAG_JUMPING;
+					
+				this.jumpsLeft = this.jumpsLeft - 1;
+					
+				// Give full jump force and later check if player stopped holding down button
+				this.velocity.Y = -this.jumpForce;
+					
+				// Slope jumps
+				//velocity.X = velocity.X - (jumpForce * sin(Ground Angle));
+				//velocity.Y = velocity.Y - (jumpForce * cos(Ground Angle));
+				return true;
+			} 
+				
+				
+				
+				
+		}
+		
+		return false;
+		
+	}
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_stopJump(double delta) {
+		
+		if ((this.keystates & PLAYER_INPUTFLAG_JUMP) != PLAYER_INPUTFLAG_JUMP) {
+				
+			// If we are moving up with a jump force bigger than 4
+			// Check if we are to close to the jump
+			if (this.velocity.Y < -4) {
+				// Allow the player to cancel hump force any time, 
+				// until a certain point in the jump of course
+					
+				// Clamp it down to four
+				//this.velocity.Y = -4;
+				// Give gravity the wheel
+				this.velocity.Y = 0;
+			}
+			
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_updatePositionWithVelocity(double delta) {
+		
+		// Add velocity to position
+		this.position.Y = this.position.Y + this.velocity.Y;
+		this.position.X = this.position.X + this.velocity.X; 
+		
+		
+	}
 	
 	
 	

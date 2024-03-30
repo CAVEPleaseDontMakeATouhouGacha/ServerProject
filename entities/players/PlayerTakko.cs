@@ -31,8 +31,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	const int cDashDurationTimeLength = 180;
 	const int cRetainDashSpeedTimeLength = 120;
 		
-	const float cGravity = 0.25f;
-	const float cTerminalFallSpeed = 20.75f;
+	const float cTakkoGravity = 0.25f;
+	const float cTakkoTerminalFallSpeed = 20.75f;
 	const float cJumpForce = 10.0f;
 		
 	// Value to normlize ordinal movement
@@ -72,7 +72,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// Handle Aerial attaks
 		
 		// Only do a slam if we are in the air
-		if ((this.flags & PLAYER_STATEFLAG_GROUNDED) != PLAYER_STATEFLAG_GROUNDED) {
+		if ((this.flags & PLAYER_BITFLAG_GROUNDED) != PLAYER_BITFLAG_GROUNDED) {
 			
 			// If player pressed melee
 			if ((this.keystates & PLAYER_INPUTFLAG_MELEE) == PLAYER_INPUTFLAG_MELEE) {
@@ -82,7 +82,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				if ((this.keystates & PLAYER_INPUTFLAG_DOWN) == PLAYER_INPUTFLAG_DOWN) {
 					
 					// Cancel out of dashing
-					this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+					this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
 					
 					// Do a slam
 					// Add donwards velocity
@@ -99,7 +99,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 						this.canDoBikeKick = false;
 						
 						// Cancel out of dashing
-						this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+						this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
 					
 						// Add small upwards velocity
 						this.velocity.Y = this.velocity.Y - 4.0f; 
@@ -118,7 +118,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 		// Handle ground attacks
-		if ((this.flags & PLAYER_STATEFLAG_GROUNDED) == PLAYER_STATEFLAG_GROUNDED) {
+		if ((this.flags & PLAYER_BITFLAG_GROUNDED) == PLAYER_BITFLAG_GROUNDED) {
 			
 			
 			// If player pressed melee
@@ -129,16 +129,16 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				if ((this.keystates & PLAYER_INPUTFLAG_UP) == PLAYER_INPUTFLAG_UP) {
 					
 					// Cancel out of dashing
-					this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+					this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
 					// We are not grounded
-					this.flags = this.flags & ~PLAYER_STATEFLAG_GROUNDED;
+					this.flags = this.flags & ~PLAYER_BITFLAG_GROUNDED;
 					// We are not jumping
-					this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+					this.flags = this.flags & ~PLAYER_BITFLAG_JUMPING;
 					// And we cannot jump
 					this.jumpsLeft = 0;
 				
 					// We can graze through bullets or else this move would be really bad
-					this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+					this.flags = this.flags & ~PLAYER_BITFLAG_JUMPING;
 				
 					// Add upwards velocity
 					this.velocity.Y = -15.0f; 
@@ -155,11 +155,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 						this.canDoBikeKick = false;
 						
 						// Cancel out of dashing
-						this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
+						this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
 						// We are not grounded
-						this.flags = this.flags & ~PLAYER_STATEFLAG_GROUNDED;
+						this.flags = this.flags & ~PLAYER_BITFLAG_GROUNDED;
 						// We are not jumping
-						this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+						this.flags = this.flags & ~PLAYER_BITFLAG_JUMPING;
 						// And we cannot jump
 						this.jumpsLeft = 0;
 					
@@ -246,89 +246,10 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	
 	//! Megaman Z Styled movement
 	
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void movement_takko_handleHorizontal(double delta) {
-		
-		
-	}
-	
-	
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void movement_takko_handleJump(double delta) {
-		
-		
-	}
-	
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void movement_takko_handleDash(double delta) {
-		
-		
-	}
-	
-	
-	
-	public void movement_takko(double delta) {
-		
-		
-		// Reset velocity
-		//velocity.Y = 0;
-		//velocity.X = 0;
-		
-		
-		// Calculate directions
-		
-		// Get horizontal input in bitflags
-		int verticalInput = (this.lookKeystates & PLAYER_INPUTFLAG_UPDOWN);
-		int horizontalInput = (this.lookKeystates & PLAYER_INPUTFLAG_LEFTRIGHT) >> 2;
-		
-		// 0 movement if nothing is being pressed
-		// -1 if player is holding left
-		// +1 if player is holding right
-		// 0 if player is holding both
-		float[] directionLookup = {0.0f, -1.0f, +1.0f, 0.0f};
-		
-		this.moveDirection.Y = directionLookup[verticalInput];
-		this.moveDirection.X = directionLookup[horizontalInput];
-		
-		if (this.moveDirection.X != 0) {
-			// Record the last valid moveDirection as lookDirection
-			this.lookDirection.X = this.moveDirection.X;
-		}
-		
-		
-		
-		
-		
-		
-			
-		// Handle normal grounded and airborne horizonal velocity
-			
-		// Calculate normal movement speed		
-		this.velocity.X = this.moveDirection.X * this.scalarSpeed;
-	
-		
-		
-		
-		
-		
-		
-		// Apply gravity if not grounded
-		
-		if ((this.flags & PLAYER_STATEFLAG_GROUNDED) != PLAYER_STATEFLAG_GROUNDED) {
-			
-			this.velocity.Y = this.velocity.Y + cGravity;
-		
-		
-			// If we reached terminal velocity, keep it like that
-			if (this.velocity.Y >= cTerminalFallSpeed) {
-				
-				this.velocity.Y = cTerminalFallSpeed;
-			}
-			
-			
-		}
-		
 
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movement_takko_handleJumpDEPRECATED(double delta) {
 		
 		// Handle jumping, yes for one tick the jump receives no gravity
 		if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
@@ -338,8 +259,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 				
 				// Normal jump check, on ground, not jumping, not dashing
-				int bNormalGroundJump = Convert.ToInt32(((this.flags & PLAYER_STATEFLAG_GROUNDED) == PLAYER_STATEFLAG_GROUNDED));
-				bNormalGroundJump = bNormalGroundJump & Convert.ToInt32(((this.flags & PLAYER_STATEFLAG_JUMPING) != PLAYER_STATEFLAG_JUMPING));
+				int bNormalGroundJump = Convert.ToInt32(((this.flags & PLAYER_BITFLAG_GROUNDED) == PLAYER_BITFLAG_GROUNDED));
+				bNormalGroundJump = bNormalGroundJump & Convert.ToInt32(((this.flags & PLAYER_BITFLAG_JUMPING) != PLAYER_BITFLAG_JUMPING));
 				
 				// If can do normal grounded jump
 				//if ((this.flags & PLAYER_STATEFLAG_GROUNDED) == PLAYER_STATEFLAG_GROUNDED) {
@@ -347,8 +268,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 				
 					// No longer grounded
-					this.flags = flags & ~PLAYER_STATEFLAG_GROUNDED;
-					this.flags = flags | PLAYER_STATEFLAG_JUMPING;
+					this.flags = flags & ~PLAYER_BITFLAG_GROUNDED;
+					this.flags = flags | PLAYER_BITFLAG_JUMPING;
 					
 					this.jumpsLeft = this.jumpsLeft - 1;
 					
@@ -371,7 +292,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		}
 		
 		// If player is jumping but stopped holding down the jump key
-		if ((this.flags & PLAYER_STATEFLAG_JUMPING) == PLAYER_STATEFLAG_JUMPING) {
+		if ((this.flags & PLAYER_BITFLAG_JUMPING) == PLAYER_BITFLAG_JUMPING) {
 			
 			if ((this.keystates & PLAYER_INPUTFLAG_JUMP) != PLAYER_INPUTFLAG_JUMP) {
 				
@@ -393,68 +314,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 		
-		
-		
-		//! Handle OmniDash
-		
-		
-		int bNotDashing = ~this.flags & PLAYER_STATEFLAG_DASHING;
-		bNotDashing = bNotDashing >> 2;
-		
-		
-		int bPressingDash = this.keystates & PLAYER_INPUTFLAG_DASH;
-		bPressingDash = bPressingDash >> 4;
-		
-		int bCanStartOmniDash = bNotDashing & bPressingDash;
-		
-		// Just started dashing
-		if (bCanStartOmniDash == 1) {
-			
-			// And if we have stamina left
-			if (this.dashStaminaTimer > 0) {
-						
-				// If we have enough air dashes, ground constantly resets them so no need
-				// for ground check
-				if (this.airDashesLeft > 0) {
-							
-					this.flags = this.flags | PLAYER_STATEFLAG_DASHING;
-					this.flags = this.flags | PLAYER_STATEFLAG_GRAZING;
-					this.flags = this.flags | PLAYER_STATEFLAG_CANCELING;
-					
-					
-					// Allow the player to do aerial attacks again
-					this.canDoBikeKick = true;
-					this.canDoHundredKicks = true;
-						
-					// Cancel push forces
-					this.pushForce.Y = 0;
-					this.pushForce.X = 0;
-							
-					// We need a check so we can do a upwards dash and two aerials ones
-					if ((this.flags & PLAYER_STATEFLAG_GROUNDED) != PLAYER_STATEFLAG_GROUNDED) {
-								
-						// Take away one airDash if we are in the air
-						this.airDashesLeft = this.airDashesLeft - 1;
-								
-					}
-							
-							
-				}
-						
-						
-						
-			}
-			
-			
-		}
-					
-					
-				
-		
-		
+	}
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movement_takko_handleDashDEPRECATED(double delta) {
 		
 		// Begin the state of dashing in this tick
-		if ((this.flags & PLAYER_STATEFLAG_DASHING) == PLAYER_STATEFLAG_DASHING) {
+		if ((this.flags & PLAYER_BITFLAG_DASHING) == PLAYER_BITFLAG_DASHING) {
 			
 			
 			float isCardinal = this.moveDirection.Y * this.moveDirection.X;
@@ -485,7 +351,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			// Handling jumping out of a ground dash
 			int bIsPLayerJumping = this.keystates & PLAYER_INPUTFLAG_JUMP;
 			bIsPLayerJumping = bIsPLayerJumping >> 4;
-			int bIsPlayerGrounded = this.flags & PLAYER_STATEFLAG_GROUNDED;
+			int bIsPlayerGrounded = this.flags & PLAYER_BITFLAG_GROUNDED;
 			
 			int bOutofDashJump = bIsPLayerJumping & bIsPlayerGrounded;
 			
@@ -493,13 +359,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			if (bOutofDashJump == 1) {
 				
 				// Dashing has ended out of own volition
-				this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
-				this.flags = this.flags & ~PLAYER_STATEFLAG_GRAZING;
-				this.flags = this.flags & ~PLAYER_STATEFLAG_CANCELING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_GRAZING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_CANCELING;
 				
 				// We are not grounded but jumping
-				this.flags = this.flags & ~PLAYER_STATEFLAG_GROUNDED;
-				this.flags = this.flags | PLAYER_STATEFLAG_JUMPING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_GROUNDED;
+				this.flags = this.flags | PLAYER_BITFLAG_JUMPING;
 				
 				this.jumpsLeft = 0;
 				
@@ -524,13 +390,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			if ((this.dashStaminaTimer <= 0) || (dashInput != PLAYER_INPUTFLAG_DASH)) {
 				
 				// Dashing has ended
-				this.flags = this.flags & ~PLAYER_STATEFLAG_DASHING;
-				this.flags = this.flags & ~PLAYER_STATEFLAG_GRAZING;
-				this.flags = this.flags & ~PLAYER_STATEFLAG_CANCELING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_GRAZING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_CANCELING;
 				
 				// We are not grounded but also not jumping
-				this.flags = this.flags & ~PLAYER_STATEFLAG_GROUNDED;
-				this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+				this.flags = this.flags & ~PLAYER_BITFLAG_GROUNDED;
+				this.flags = this.flags & ~PLAYER_BITFLAG_JUMPING;
 				
 				
 				// Don't allow to jump in the air when a dash has ended
@@ -552,6 +418,293 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			
 			
 		}
+		
+		
+		
+		
+		
+		
+	}
+	
+
+	public bool movement_takko_startDash(double delta) {
+		
+		
+		// Just started dashing
+		if ((this.keystates & PLAYER_INPUTFLAG_DASH) == PLAYER_INPUTFLAG_DASH) {
+			
+			// And if we have stamina left
+			if (this.dashStaminaTimer > 0) {
+						
+				// If we have enough air dashes, ground constantly resets them so no need
+				// for ground check
+				if (this.airDashesLeft > 0) {
+					
+					// We are now dashing
+					this.state = PLAYER_STATE_DASHING;		
+					this.flags = this.flags | PLAYER_BITFLAG_DASHING;
+					this.flags = this.flags | PLAYER_BITFLAG_GRAZING;
+					this.flags = this.flags | PLAYER_BITFLAG_CANCELING;
+					
+					
+					// Allow the player to do aerial attacks again
+					this.canDoBikeKick = true;
+					this.canDoHundredKicks = true;
+						
+					// Cancel push forces
+					this.pushForce.Y = 0;
+					this.pushForce.X = 0;
+					
+					return true;
+							
+				}
+						
+						
+						
+			}
+			
+			
+		}
+		
+		return false;
+		
+	}
+
+	
+	
+	public void movement_takkoImp(double delta) {
+		
+	
+
+		switch (this.state) {
+			
+			
+			case (PLAYER_STATE_GROUNDED): {
+				
+				this.movementGeneral_calculateDirections(delta);
+				
+				// Calculate normal movement speed
+				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
+				
+				bool bWasJumpStarted = this.movementGeneral_startJump(delta);
+				if (bWasJumpStarted == true) {
+					// Start handling jump on this tick
+					goto case(PLAYER_STATE_JUMPING);
+				}
+				
+				//!TODO: Maybe move this to another place in the future
+				this.movementGeneral_updatePositionWithVelocity(delta);
+				
+				
+				break;
+			}
+			
+			case (PLAYER_STATE_AIRBORNE): {
+				
+				this.movementGeneral_calculateDirections(delta);
+				
+				// Calculate normal movement speed		
+				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
+				
+				
+				bool startedAirDashing = this.movement_takko_startDash(delta);
+				if (startedAirDashing == true) {
+					// Take away one airDash if we are in the air
+					this.airDashesLeft = this.airDashesLeft - 1;
+					goto case(PLAYER_STATE_DASHING);
+				}
+				
+				
+				
+				this.movementGeneral_applyGravity(delta);
+				
+				this.movementGeneral_updatePositionWithVelocity(delta);
+				
+				
+				break;
+			}
+			
+			case (PLAYER_STATE_JUMPING): {
+				
+				this.movementGeneral_calculateDirections(delta);
+				
+				// Calculate normal movement speed		
+				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
+				
+				this.movementGeneral_applyGravity(delta);
+				
+				this.movementGeneral_stopJump(delta);
+				
+				this.movementGeneral_updatePositionWithVelocity(delta);
+				
+				
+				break;
+			}
+			
+			
+			case (PLAYER_STATE_DASHING): {
+				
+				
+				break;
+			}
+			
+			case (PLAYER_STATE_DASHINGGROUND): {
+				
+				
+				
+				break;
+			}
+			
+			case (PLAYER_STATE_DASHINGAIR): {
+				
+				
+				
+				break;
+			}
+			
+			
+			case (PLAYER_STATE_ATTACK): {
+				
+				
+				break;
+			}
+			
+			
+			case (PLAYER_STATE_ATTACKGROUND): {
+				
+				
+				break;
+			}
+			
+			
+			case (PLAYER_STATE_ATTACKAIR): {
+				
+				
+				
+				break;
+			}
+			
+			
+		};
+		
+		
+		if (this.position.Y > 900) {
+			
+			//this.position.Y = (float)bOnGround;
+			this.position.Y = 900;
+			
+			// We are now on ground
+			this.state = PLAYER_STATE_GROUNDED;
+			
+			
+			// Reset vertical momentum
+			this.velocity.Y = 0.0f;
+			
+			// Reset jumps
+			this.jumpsLeft = 1;
+			
+			// Reset dash
+			this.dashStaminaTimer = cDashDurationTimeLength;
+			this.scalarSpeed = cWalkSpeed;
+			this.airDashesLeft = 2;
+			
+			
+			// Allow the player to do aerial attacks again
+			this.canDoBikeKick = true;
+			this.canDoHundredKicks = true;
+			
+			
+		}
+		
+		
+		
+	}
+	
+	
+	public void movement_takko(double delta) {
+		
+		
+
+		
+		this.movementGeneral_calculateDirections(delta);
+		
+		// Calculate normal movement speed		
+		this.velocity.X = this.moveDirection.X * this.scalarSpeed;
+		
+		
+		// Apply gravity if not grounded
+		
+		if ((this.flags & PLAYER_BITFLAG_GROUNDED) != PLAYER_BITFLAG_GROUNDED) {
+			
+			
+			this.movementGeneral_applyGravity(delta);
+			
+		}
+		
+
+		
+		// Handle jumping
+		
+		this.movement_takko_handleJumpDEPRECATED(delta);
+		
+		
+		
+		//! Handle OmniDash
+		
+		
+		int bNotDashing = ~this.flags & PLAYER_BITFLAG_DASHING;
+		bNotDashing = bNotDashing >> 2;
+		
+		
+		int bPressingDash = this.keystates & PLAYER_INPUTFLAG_DASH;
+		bPressingDash = bPressingDash >> 4;
+		
+		int bCanStartOmniDash = bNotDashing & bPressingDash;
+		
+		// Just started dashing
+		if (bCanStartOmniDash == 1) {
+			
+			// And if we have stamina left
+			if (this.dashStaminaTimer > 0) {
+						
+				// If we have enough air dashes, ground constantly resets them so no need
+				// for ground check
+				if (this.airDashesLeft > 0) {
+							
+					this.flags = this.flags | PLAYER_BITFLAG_DASHING;
+					this.flags = this.flags | PLAYER_BITFLAG_GRAZING;
+					this.flags = this.flags | PLAYER_BITFLAG_CANCELING;
+					
+					
+					// Allow the player to do aerial attacks again
+					this.canDoBikeKick = true;
+					this.canDoHundredKicks = true;
+						
+					// Cancel push forces
+					this.pushForce.Y = 0;
+					this.pushForce.X = 0;
+							
+					// We need a check so we can do a upwards dash and two aerials ones
+					if ((this.flags & PLAYER_BITFLAG_GROUNDED) != PLAYER_BITFLAG_GROUNDED) {
+								
+						// Take away one airDash if we are in the air
+						this.airDashesLeft = this.airDashesLeft - 1;
+								
+					}
+							
+							
+				}
+						
+						
+						
+			}
+			
+			
+		}
+					
+					
+				
+		this.movement_takko_handleDashDEPRECATED(delta);
 		
 		
 		
@@ -579,8 +732,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			this.position.Y = 900;
 			
 			// We are now on ground
-			this.flags = this.flags | PLAYER_STATEFLAG_GROUNDED;
-			this.flags = this.flags & ~PLAYER_STATEFLAG_JUMPING;
+			this.flags = this.flags | PLAYER_BITFLAG_GROUNDED;
+			this.flags = this.flags & ~PLAYER_BITFLAG_JUMPING;
 			
 			
 			// Reset vertical momentum
@@ -626,7 +779,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		}
 		
 		// If we are moving fast we let out after images
-		if ((this.flags & PLAYER_STATEFLAG_DASHING) == PLAYER_STATEFLAG_DASHING) {
+		if ((this.flags & PLAYER_BITFLAG_DASHING) == PLAYER_BITFLAG_DASHING) {
 		//if ((this.scalarSpeed > cWalkSpeed) {
 			
 			Particle afterImage = particleScene.Instantiate<Particle>();
@@ -679,8 +832,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		this.melee_takko(delta);
 		
 		// Run movement code
-		this.movement_takko(delta);
-		//this.movement_sonic(delta);
+		//this.movement_takko(delta);
+		this.movement_takkoImp(delta);
 		
 		//! Handle bullets
 		// Graze bullets that are grazeable and cancel those that are cancelable
@@ -694,6 +847,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			this.position.Y = 000;
 			this.position.X = 100;
 			this.velocity.Y = 0;
+			this.state = PLAYER_STATE_GROUNDED;
+			this.scalarSpeed = cWalkSpeed;
+			
 		}
 		
 		
@@ -724,6 +880,14 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		this.TopLevel = true;
 		this.initPlatformerPlayerBase();
 		
+		
+		// Set movement constants
+		this.gravity = cTakkoGravity;
+		this.terminalFallSpeed = cTakkoTerminalFallSpeed;
+		this.jumpForce = cJumpForce;
+		
+		
+		
 		// Dashing
 		this.airDashesLeft = 2;
 		this.dashStaminaTimer = cDashDurationTimeLength;
@@ -738,6 +902,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		this.canDoHundredKicks = true;
 		
 		
+		
+		// Start on airborne state
+		this.state = PLAYER_STATE_AIRBORNE;
 		
 	}
 	

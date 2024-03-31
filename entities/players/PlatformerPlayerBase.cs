@@ -87,6 +87,8 @@ public partial class PlatformerPlayerBase : Node2D
 	public const int PLAYER_STATE_ATTACKGROUND = 8;
 	public const int PLAYER_STATE_ATTACKAIR = 9;
 	
+	// The player is not controlling the character and has been knocked down
+	public const int PLAYER_STATE_KNOCKEDDOWN = 10;
 	
 	// General bitflags 
 	
@@ -210,6 +212,9 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	// The amount of air dashes the player can do it the air
 	public int airDashesLeft;
+	
+	// Whether the speed of the dash is cardinal or ordinal
+	public float currDashSpeed;
 	
 	
 	// Shooting

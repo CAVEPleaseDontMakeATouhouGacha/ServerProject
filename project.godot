@@ -16,6 +16,10 @@ config/features=PackedStringArray("4.2", "C#", "Forward Plus")
 boot_splash/show_image=false
 config/icon="res://icon.svg"
 
+[autoload]
+
+DebugMenu="*res://addons/debug_menu/debug_menu.tscn"
+
 [display]
 
 window/size/viewport_width=1920
@@ -28,7 +32,7 @@ project/assembly_name="ServerProject"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/PerfBullets/plugin.cfg", "res://addons/debug_menu/plugin.cfg")
 
 [input]
 

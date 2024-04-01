@@ -69,9 +69,15 @@ public partial class Shot : Node2D
 	public override void _Ready()
 	{
 		// Shot does not collide with terrain and stays on top of it
-		this.TopLevel = true;
-		AnimatedSprite2D animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-	
+		//this.TopLevel = true;
+		this.animatedSprite2D = this.GetNode<AnimatedSprite2D>("ShotAnimatedSprite2D");
+		if (animatedSprite2D == null) {
+			
+			GD.Print("Unable to get animation node");
+			
+		}
+		
+		
 	}
 	
 	
@@ -92,6 +98,12 @@ public partial class Shot : Node2D
 		this.velocity.Y = 0;
 		this.velocity.X = dir.X * scalarSpeed;
 		
+		// If moving to the left, flip sprite
+		if (velocity.X < 0) {
+			this.animatedSprite2D.FlipH = true;
+		}
+		
+		
 		// If not lower
 		this.damage = 8;
 		// Does no knockback
@@ -103,8 +115,8 @@ public partial class Shot : Node2D
 		this.timeoutTimer = 360;
 		
 		
-		//this.animatedSprite2D.Animation = "SmallShot";
-		
+		this.animatedSprite2D.Animation = "SmallShot";
+		//this.animatedSprite2D.Play("SmallShot");
 		
 	}
 	
@@ -124,6 +136,11 @@ public partial class Shot : Node2D
 		this.velocity.Y = 0;
 		this.velocity.X = dir.X * scalarSpeed;
 		
+		// If moving to the left, flip sprite
+		if (velocity.X < 0) {
+			this.animatedSprite2D.FlipH = true;
+		}
+		
 		this.damage = 50;
 		
 		// Time out after 3 seconds, allow Shot to be used for sniping
@@ -131,8 +148,8 @@ public partial class Shot : Node2D
 		this.timeoutTimer = 360;
 		
 		
-		//this.animatedSprite2D.Animation = "BigShot";
-		
+		this.animatedSprite2D.Animation = "BigShot";
+		//this.animatedSprite2D.Play("BigShot");
 		
 	}
 	

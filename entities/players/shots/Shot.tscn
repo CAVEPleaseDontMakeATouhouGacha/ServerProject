@@ -26,6 +26,6 @@ animations = [{
 [node name="Shot" type="Node2D"]
 script = ExtResource("1_rkodf")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="ShotAnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_p7ubc")
-animation = &"SmallShot"
+animation = &"BigShot"

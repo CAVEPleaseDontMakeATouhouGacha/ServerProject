@@ -88,7 +88,7 @@ public partial class Bullet : Node2D
 	{
 		// Bullets do not collide with terrain and stay on top of it
 		this.TopLevel = true;
-		AnimatedSprite2D animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		this.animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 	
 	}
 	

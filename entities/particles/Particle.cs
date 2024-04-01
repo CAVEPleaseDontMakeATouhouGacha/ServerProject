@@ -70,7 +70,7 @@ public partial class Particle : Node2D
 	public override void _Ready()
 	{
 		//this.TopLevel = true;
-		AnimatedSprite2D animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		this.animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 	
 	}
 	

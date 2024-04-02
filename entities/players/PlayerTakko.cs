@@ -23,25 +23,25 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 	// Changed for this game's resolution
-	const float cWalkSpeed = 3.5f;
-	const float cDashSpeed = 8f;
-	const float cSuperSpeed = 10f;
+	public const float cWalkSpeed = 3.5f;
+	public const float cDashSpeed = 8f;
+	public const float cSuperSpeed = 10f;
 		
 	// Dash can last up to 1.5 second
-	const int cDashDurationTimeLength = 180;
+	public const int cDashDurationTimeLength = 180;
 	//!DEPRECATED
 	//const int cRetainDashSpeedTimeLength = 120;
-	const int cMaxAerialDashes = 2;
+	public const int cMaxAerialDashes = 2;
 	
-	const float cTakkoGravity = 0.25f;
-	const float cTakkoTerminalFallSpeed = 20.75f;
-	const float cJumpForce = 10.0f;
-	const int cMaxJumps = 1;
+	public const float cTakkoGravity = 0.25f;
+	public const float cTakkoTerminalFallSpeed = 20.75f;
+	public const float cJumpForce = 10.0f;
+	public const int cMaxJumps = 1;
 		
 	// Value to normlize ordinal movement
-	const float cOrdinalNormalizer = 0.7071067f;
-	const float cCardinalDashSpeed = cDashSpeed;
-	const float cOrdinalDashSpeed = cDashSpeed * cOrdinalNormalizer;
+	public const float cOrdinalNormalizer = 0.7071067f;
+	public const float cCardinalDashSpeed = cDashSpeed;
+	public const float cOrdinalDashSpeed = cDashSpeed * cOrdinalNormalizer;
 		
 	// Using delta time
 	//float walkSpeed = 420f * delta;
@@ -59,9 +59,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	// Takes one second and a half to reach max charge shot
 	// Can shoot at half that time for a weaker shot
 	// Weaker shot should not have half the damage of the max one
-	const int cMaxChargeShotLength = 180;
+	public const int cMaxChargeShotLength = 180;
 	// Timer has to be at least this value to shoot a weak shot
-	const int cWeakChargeShot = 150;
+	public const int cWeakChargeShot = 150;
 	
 	
 	
@@ -206,7 +206,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				Shot smallShot = shotScene.Instantiate<Shot>();
 				
 				// Spawn the Shot by adding it to the Main scene.
-				AddChild(smallShot);
+				level.AddChild(smallShot);
 				// Only after do we set members
 				smallShot.spawnSmall(this.position.X, this.position.Y, this.lookDirection);
 			
@@ -219,7 +219,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				Shot bigShot = shotScene.Instantiate<Shot>();
 				
 				// Spawn the Shot by adding it to the Main scene.
-				AddChild(bigShot);
+				level.AddChild(bigShot);
 				// Now set members
 				bigShot.spawnBig(this.position.X, this.position.Y, this.lookDirection);
 			
@@ -407,8 +407,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 				this.movementGeneral_calculateDirections(delta);
 				
-				bool startedAirDashing = this.movement_takko_startDash(delta);
-				if (startedAirDashing == true) {
+				bool startedGroundDashing = this.movement_takko_startDash(delta);
+				if (startedGroundDashing == true) {
 
 					// Begin the state of dashing in this tick
 					this.state = PLAYER_STATE_DASHINGGROUND;
@@ -506,6 +506,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				if (stoppedDash == true) {
 					// If we stopped dashing in the ground we are now grounded
 					this.state = PLAYER_STATE_GROUNDED;
+					// Give the normal walking speed back
+					this.scalarSpeed = cWalkSpeed;
 					goto case(PLAYER_STATE_GROUNDED);
 				}
 				
@@ -584,6 +586,15 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		};
 		
 		
+		int lineStartPosY = (int)this.prevPosition.Y;
+		int lineEndPosY = (int)this.position.Y;
+		int lineStartPosX = (int)this.prevPosition.X;
+		int lineEndPosX= (int)this.position.X;
+		
+		
+		tileCollision_lineY(lineStartPosY, lineEndPosY, lineStartPosX);
+		
+		
 		if (this.position.Y > 900) {
 			
 			//this.position.Y = (float)bOnGround;
@@ -635,9 +646,67 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			
 		}
 		
+		
+		switch (this.state) {
+			
+			
+			case (PLAYER_STATE_GROUNDED): {
+				
+				this.animatedSprite2D.Play("Idle");
+				
+				break;
+			}
+			
+			case (PLAYER_STATE_AIRBORNE): {
+				
+				this.animatedSprite2D.Play("Idle");
+				
+				break;
+			}
+			
+			case (PLAYER_STATE_JUMPING): {
+				
+				this.animatedSprite2D.Play("Idle");
+				
+				break;
+			}
+			
+
+			case (PLAYER_STATE_DASHINGGROUND):
+			case (PLAYER_STATE_DASHINGAIR): {
+				
+				// If we are dashing, play the dashing animation
+				this.animatedSprite2D.Play("Dashing");
+				
+				break;
+			}
+			
+			
+
+			
+			case (PLAYER_STATE_ATTACKGROUND): {
+				
+				
+				break;
+			}
+			
+			
+			case (PLAYER_STATE_ATTACKAIR): {
+				
+				
+				
+				break;
+			}
+			
+			
+		};
+		
+		
+		
+
+		
 		// If we are moving fast we let out after images
-		if ((this.flags & PLAYER_BITFLAG_DASHING) == PLAYER_BITFLAG_DASHING) {
-		//if ((this.scalarSpeed > cWalkSpeed) {
+		if (this.scalarSpeed > cWalkSpeed) {
 			
 			Particle afterImage = particleScene.Instantiate<Particle>();
 			// Spawn the afterimage by adding it to the Main scene.
@@ -695,6 +764,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// Graze bullets that are grazeable and cancel those that are cancelable
 		// and of course collide with them
 		
+		
+		// Shoot charged Shots
 		this.shooting_takko(delta);
 		
 		
@@ -748,7 +819,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		this.airDashesLeft = cMaxAerialDashes;
 		this.dashStaminaTimer = cDashDurationTimeLength;
 		
-		//! TODO: Put constants here
+		
 		this.chargeShotTimer = cMaxChargeShotLength;
 		
 		

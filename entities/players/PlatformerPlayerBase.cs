@@ -27,6 +27,7 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	public const int TILETYPE_EMPTY = 0;
 	public const int TILETYPE_FULLSOLID = 1;
+	public const int TILETYPE_DEATH = 2;
 	
 	// PLayer had no collision with a tile
 	public const int TILECOLRES_NONE = 0;
@@ -271,7 +272,7 @@ public partial class PlatformerPlayerBase : Node2D
 	public void buildKeystates() {
 		
 		/*
-		
+		// Not worth the effort with how restrictive C# is with bit operations
 		byte[,] bitflagTable = {
 			{0,2},
 			{0,4},
@@ -285,7 +286,7 @@ public partial class PlatformerPlayerBase : Node2D
 		*/
 		
 		
-		
+		// Grab the raw keystates from the player
 		this.keystates = Convert.ToByte(Input.IsActionPressed("INPUT_UP"));
 		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_DOWN")) << 1);
 		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_LEFT")) << 2);
@@ -333,6 +334,25 @@ public partial class PlatformerPlayerBase : Node2D
 	//======================
 	//! General Movement Functions
 	//======================
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_readGlobalPosition(double delta) {
+	
+		// Grab Global Position
+		this.position = this.GlobalPosition;
+		// Record previous position
+		this.prevPosition = this.position;
+	}
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_writeGlobalPosition(double delta) {
+	
+		// Set back Global position
+		// Write Global Position back into entity
+		this.GlobalPosition = this.position;
+	}
+	
 	
 	
 	
@@ -457,6 +477,310 @@ public partial class PlatformerPlayerBase : Node2D
 	//======================
 	//! Tileset Collision Functions
 	//======================
+	
+	//! UNIMPLEMENTED
+	public TileData tileCollision_lineX(int lineStartPosX, int lineEndPosX,int linePosY) {
+		
+		
+		// Convert pixel line into a tile line
+		int tileLineStartPosX = lineStartPosX >> 5;
+		int tileLineEndtPosX = lineEndPosX >> 5;
+		int tileLinePosY = linePosY >> 5;
+		
+		// Check 3 tiles bellow
+		
+		Vector2I tileSensor = new Vector2I();
+		tileSensor.Y = tileLinePosY;
+		tileSensor.X = tileLineStartPosX;
+		
+		
+		
+		// Check the tiles from up to down while looking for walls
+		tileSensor.X = tileSensor.X - 2;
+		
+		// Tiles to check
+		int tileCheckNum = 5;
+		
+		// Do collison checks until we have done the full X movement
+		do {
+			
+			while (tileCheckNum > 0) {
+			
+				TileData tile = tilemap.GetCellTileData(0, tileSensor);
+			
+				// If there is no tile there move to the next one
+				if (tile == null) {
+				
+					tileCheckNum = tileCheckNum - 1;
+					tileSensor.Y = tileSensor.Y + 1;
+					continue;
+				}
+			
+			
+				int tileType = tile.Terrain;
+			
+			
+				switch (tileType) {
+				
+					case TILETYPE_EMPTY: {
+						
+						// Do nothing, move to the next tile
+						break;
+					}
+					
+					case TILETYPE_FULLSOLID: {
+						
+						Vector2 tilePos = tilemap.MapToLocal(tileSensor);
+						tilePos = this.ToGlobal(tilePos);
+						
+						tilePos.Y = tilePos.Y + 16;
+						
+						this.position.Y = tilePos.Y;
+						
+						return null;
+						
+						break;
+					}
+					
+				
+				
+				}
+			
+			
+				// Go to the next tile 
+				tileSensor.Y = tileSensor.Y + 1;
+				tileCheckNum = tileCheckNum - 1;
+			}
+			
+			// Move horizontally to the next X column
+			tileSensor.X = tileSensor.X + 1;
+			
+		} while (tileSensor.X >= tileLineEndtPosX);
+		
+		
+		
+		return null;
+		
+		
+		
+	}
+	
+	//! UNIMPLEMENTED
+	public TileData tileCollision_lineY(int lineStartPosY, int lineEndPosY,int linePosX) {
+		
+		
+		// Convert pixel line into a tile line
+		int tileLineStartPosY = lineStartPosY >> 5;
+		int tileLineEndtPosY = lineEndPosY >> 5;
+		
+		// Check 3 tiles bellow
+		
+		Vector2I tileSensor = new Vector2I();
+		tileSensor.Y = 0;
+		tileSensor.X = 0;
+		
+		// Convert to tile index
+		tileSensor.Y = tileSensor.Y >> 5;
+		tileSensor.X = tileSensor.X >> 5;  
+		
+		// Start by checking the tiles left to right
+		tileSensor.X = tileSensor.X - 1;
+		
+		// Tiles to check
+		int tileCheckNum = 3;
+		
+		while (tileCheckNum > 0) {
+			
+			TileData tile = tilemap.GetCellTileData(0, tileSensor);
+			
+			// If there is no tile there move to the next one
+			if (tile == null) {
+				
+				tileCheckNum = tileCheckNum - 1;
+				tileSensor.Y = tileSensor.Y + 1;
+				continue;
+			}
+			
+			
+			int tileType = tile.Terrain;
+			
+			
+			switch (tileType) {
+				
+				case TILETYPE_EMPTY: {
+					
+					// Do nothing, move to the next tile
+					break;
+				}
+				
+				case TILETYPE_FULLSOLID: {
+					
+					Vector2 tilePos = tilemap.MapToLocal(tileSensor);
+					tilePos = this.ToGlobal(tilePos);
+					
+					tilePos.Y = tilePos.Y + 16;
+					
+					this.position.Y = tilePos.Y;
+					
+					return null;
+					
+					break;
+				}
+				
+				
+				
+			}
+			
+			
+			// Go to the next tile 
+			tileSensor.Y = tileSensor.Y + 1;
+			tileCheckNum = tileCheckNum - 1;
+		}
+		
+		
+		return null;
+		
+		
+		
+	}
+	
+	
+	// A line check with the tile map
+	// Returns the first found tile data on the line path
+	// It uses the Bresenham line algorithm of course
+	public TileData tileCollision_line(int lineStartPosX, int lineStartPosY, 
+									   int lineEndPosX, int lineEndPosY) {
+		
+		
+		// The steep value, since we cannot move sub tiles we build up a steep value until it's
+		// big enough to go to the next tile
+		
+		
+		bool steep = Math.Abs(lineEndPosY - lineStartPosY) > Math.Abs(lineEndPosX - lineStartPosX);
+		
+		
+		int tempSwap;
+		
+		// If the line is more vertical than horizontal
+		if (steep) {
+			// We "rotate" the horizontal line we will draw,
+			// so vertical line becomes the horizontal one
+			tempSwap = lineStartPosX;
+			lineStartPosX = lineStartPosY;
+			lineStartPosY = tempSwap;
+			
+			tempSwap = lineEndPosX;
+			lineEndPosX = lineEndPosY;
+			lineEndPosY = tempSwap;
+			
+		}
+		
+		// If the start position is more to the right than the end position
+		// We swap them so the difference from start to end always remains positive
+		if (lineStartPosX > lineEndPosX) {
+			
+			tempSwap = lineStartPosX;
+			lineStartPosX = lineEndPosX;
+			lineEndPosX = tempSwap;
+			
+			tempSwap = lineStartPosY;
+			lineStartPosY = lineEndPosY;
+			lineEndPosY = tempSwap;
+			
+			
+		}
+		
+		// Absolute difference between the start and end position on the X axis
+		// The distance we have to traverse on the X axis until we complete the line detection
+		int deltaX = lineEndPosX - lineStartPosX;
+		// Absolute difference between the start and end position on the Y axis
+		// Not as important as X axis since Y is worked as a secondary axis we change when error accumulator
+		// becomes too big
+		// The distance we have to traverse on the Y axis until we complete the line detection
+		int deltaY = Math.Abs(lineEndPosY - lineEndPosY);
+		
+		// The step amount in the Y axis
+		int stepY;
+		
+		// The error accumlulator
+		int error = 0;
+		
+		// Default to going up one step on the Y tile position
+		stepY = -1;
+		// If the start pos Y is smaller than the end one that means the start position is above the end position
+		if (lineStartPosY < lineEndPosY) {
+			// So we need to go down not up
+			stepY = +1;
+		}
+		
+		
+		// The tile position we are currently in
+		int posY = lineStartPosY;
+		int posX = lineStartPosX;
+		
+		//! TODO: Check before moving so we don't do tile collision detection
+		// Do a while since there is the possibility we are not moving
+		while (posX <= lineEndPosX) {
+			
+			TileData tile = null;
+			
+			// If the line is steep we need to get the Tile using inverted positions since we inverted them at the begining
+			if (steep) {
+				
+				// Grab terrain info
+				// Point(posY,posX);
+				Vector2I tilePos = new Vector2I(posY, posX);
+				tile = tilemap.GetCellTileData(0, tilePos);
+				
+				
+			} else {
+				
+				// If not inverted just grab them normally
+				
+				// Grab terrain info 
+				// Point(posX,posY);
+				Vector2I tilePos = new Vector2I(posX, posY);
+				tile = tilemap.GetCellTileData(0, tilePos);
+				
+				
+			}
+			
+			
+			// If tile not null or empty return it
+			if (tile != null) {
+					
+				if(tile.Terrain != TILETYPE_EMPTY) {
+					// We found a possible tile
+					return tile;
+				}
+					
+			}
+			
+			
+			
+			// Add the deltaY to the error accumulator
+			error = error + deltaY;
+			
+			// Since we are working with only integers we need to multiply the error accumulator by 2
+			// to get a makeshift precision.
+			// If the error accumulator is now outside the deltaX trajectory
+			if (2 * error >= deltaX) {
+				
+				// We need to move the posY into the correct trajectory
+				// by going one step above, or bellow
+				posY = posY + stepY;
+				// Error has been dealt with, we can look for a new one
+				error = error - deltaX;
+			}
+			
+			// Move to the next horizontal tile
+			posX = posX + 1;
+		}
+		
+		// No tile that could be collided found
+		return null;
+		
+	}
 	
 	
 	public int tileCollision_groundCeiling(float sensorOffsetY) {

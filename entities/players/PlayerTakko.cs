@@ -713,7 +713,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			//AddChild(afterImage);
 			
 			// Add after image to level
-			GetParent<Node2D>().AddChild(afterImage);
+			level.AddChild(afterImage);
 			
 			Vector2 nomove = new Vector2(0.0f, 0.0f);
 			int afterImageDuration = 30;

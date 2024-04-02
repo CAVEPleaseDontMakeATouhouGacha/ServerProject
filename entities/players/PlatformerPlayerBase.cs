@@ -244,11 +244,16 @@ public partial class PlatformerPlayerBase : Node2D
 	public int grazingTimer;
 	public int cancelingTimer;
 	
-	public float rectHeight = 65.0f;
-	public float rectWidth = 32.0f;  
 	
-	public float circleRadius = 32.0f;
-	public float circleRadiusSqrd = 32.0f * 32.0f;
+	public const float cDefaultRectHeight = 63.5f;
+	public const float cDefaultRectWidth = 31.5f;
+	public const float cDefaultCircleRadius = 31.5f;
+	
+	public float rectHeight = cDefaultRectHeight;
+	public float rectWidth = cDefaultRectWidth;  
+	
+	public float circleRadius = cDefaultCircleRadius;
+	public float circleRadiusSqrd = cDefaultCircleRadius * cDefaultCircleRadius;
 	
 	// Parents
 	

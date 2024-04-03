@@ -212,8 +212,7 @@ public partial class Shot : Node2D
 		if (this.timeoutTimer <= 0) {
 			
 			// Keep Shot in memory for later reusing, just stop processing it
-			this.SetProcess(false);
-			this.Hide();
+			this.parentPool.freeShot(this.id);
 			//QueueFree();
 			
 		}

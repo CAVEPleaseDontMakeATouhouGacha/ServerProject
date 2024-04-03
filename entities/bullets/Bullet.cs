@@ -268,9 +268,7 @@ public partial class Bullet : Node2D
 					
 					// Finally free the bullet for real
 					// Keep Particle in memory for later reusing, just stop processing it
-					this.SetProcess(false);
-					this.Hide();
-					//QueueFree();
+					this.parentPool.freeBullet(this.id);
 			
 				}
 				

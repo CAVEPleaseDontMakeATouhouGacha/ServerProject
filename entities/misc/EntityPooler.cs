@@ -126,7 +126,9 @@ public partial class EntityPooler : Node
 			
 			// Start them off
 			particle.SetProcess(false);
-			particle.Visible = false;
+			particle.SetPhysicsProcess(false);
+			//particle.Visible = false;
+			particle.Hide();
 			
 			this.particlePool[currParticle] = particle;
 			
@@ -147,12 +149,57 @@ public partial class EntityPooler : Node
 	}
 	
 	
+	
+	public void fillShotPool() {
+		
+		this.level = GetParent<Node2D>();
+		if (this.level == null) {
+			GD.Print("Level was not found.");
+		}
+		
+		
+		this.shotPool = new Shot[shotPoolSize];
+		
+		int currShot = 0;
+		
+		do {
+			
+			Shot shot = shotScene.Instantiate<Shot>();
+			shot.nextFree = (currShot + 1);
+			shot.parentPool = this;
+			shot.id = currShot;
+			
+
+			shot.SetProcess(false);
+			shot.SetPhysicsProcess(false);
+			//shot.Visible = false;
+			shot.Hide();
+			
+			this.shotPool[currShot] = shot;
+			
+			this.level.CallDeferred(Node2D.MethodName.AddChild, this.shotPool[currShot]);
+			
+			currShot = currShot + 1;
+			
+			
+			
+		} while (currShot < shotPoolSize);
+		
+		
+		this.nextFreeShot = 0;
+		
+		
+	}
+	
+	
+	
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		
 		this.fillParticlePool();
-		
+		this.fillShotPool();
 			
 	}
 	
@@ -164,6 +211,7 @@ public partial class EntityPooler : Node
 		nextFreeParticle = newParticle.nextFree;
 		
 		newParticle.SetProcess(true);
+		newParticle.SetPhysicsProcess(true);
 		newParticle.Visible = true;
 		
 		return newParticle;
@@ -176,6 +224,7 @@ public partial class EntityPooler : Node
 		nextFreeShot = newShot.nextFree;
 		
 		newShot.SetProcess(true);
+		newShot.SetPhysicsProcess(true);
 		newShot.Visible = true;
 		
 		return newShot;
@@ -189,7 +238,8 @@ public partial class EntityPooler : Node
 		nextFreeBullet = newBullet.nextFree;
 		
 		newBullet.SetProcess(true);
-		newBullet.Visible = true;
+		//newBullet.Visible = true;
+		newBullet.Show();
 		
 		return newBullet;
 	}
@@ -202,6 +252,7 @@ public partial class EntityPooler : Node
 		
 		
 		this.particlePool[indexToFree].SetProcess(false);
+		this.particlePool[indexToFree].SetPhysicsProcess(false);
 		this.particlePool[indexToFree].Hide();
 		
 		// The newly freed Particle now points to the next free one
@@ -215,6 +266,7 @@ public partial class EntityPooler : Node
 	public void freeBullet(int indexToFree) {
 		
 		this.bulletPool[indexToFree].SetProcess(false);
+		this.bulletPool[indexToFree].SetPhysicsProcess(false);
 		this.bulletPool[indexToFree].Hide();
 		this.bulletPool[indexToFree].nextFree = this.nextFreeBullet;
 		this.nextFreeBullet= indexToFree;
@@ -225,6 +277,7 @@ public partial class EntityPooler : Node
 	public void freeShot(int indexToFree) {
 		
 		this.shotPool[indexToFree].SetProcess(false);
+		this.shotPool[indexToFree].SetPhysicsProcess(false);
 		this.shotPool[indexToFree].Hide();
 		this.shotPool[indexToFree].nextFree = this.nextFreeShot;
 		this.nextFreeShot = indexToFree;
@@ -235,8 +288,13 @@ public partial class EntityPooler : Node
 	
 	
 	
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-	}
+	
+	//======================
+	//! ECL wannabe lmao
+	//======================
+	
+	// Might be getting a bit carried away...
+	
+	
+	
 }

@@ -24,6 +24,14 @@ public partial class Shot : Node2D
 	public const int SHOT_COLLISION_LAYER = 6;
 	
 	
+	// Takko shot constants
+	public const float cTakkoSmallShotWidth = 48.5f;
+	public const float cTakkoSmallShotHeight = 16.5f;
+	
+	public const float cTakkoBigShotWidth = 48.5f;
+	public const float cTakkoBigShotHeight = 48.5f;
+	
+	
 	//======================
 	//! Members
 	//======================
@@ -101,20 +109,8 @@ public partial class Shot : Node2D
 		
 		this.collisionQuery = new PhysicsShapeQueryParameters2D();
 		this.directSpaceState = GetWorld2D().DirectSpaceState;
-		
-		
-		
-		Rid rectRid = PhysicsServer2D.RectangleShapeCreate();
-		float radius = 64.0f;
-		PhysicsServer2D.ShapeSetData(rectRid, radius);
 
 
-		collisionQuery.ShapeRid = rectRid;
-		
-		//!TODO: Maybe change this to false...
-		collisionQuery.CollideWithBodies = true;
-		collisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
-		
 		
 	}
 	
@@ -146,6 +142,15 @@ public partial class Shot : Node2D
 		this.damage = 8;
 		// Does no knockback
 		this.knockback = 0.0f;
+		
+		// Set collision
+		Rid rectRid = PhysicsServer2D.RectangleShapeCreate();
+		Vector2 rectWidthHeight = new Vector2(cTakkoSmallShotWidth, cTakkoSmallShotHeight);
+		PhysicsServer2D.ShapeSetData(rectRid, rectWidthHeight);
+		collisionQuery.ShapeRid = rectRid;
+		//!TODO: Maybe change this to false...
+		collisionQuery.CollideWithBodies = true;
+		collisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
 		
 		
 		// Time out after 3 seconds
@@ -180,6 +185,18 @@ public partial class Shot : Node2D
 		}
 		
 		this.damage = 50;
+		
+		
+		// Set collision shape
+		Rid rectRid = PhysicsServer2D.RectangleShapeCreate();
+		Vector2 rectWidthHeight = new Vector2(cTakkoBigShotWidth, cTakkoBigShotHeight);
+		PhysicsServer2D.ShapeSetData(rectRid, rectWidthHeight);
+		collisionQuery.ShapeRid = rectRid;
+		//!TODO: Maybe change this to false...
+		collisionQuery.CollideWithBodies = true;
+		collisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
+		
+		
 		
 		// Time out after 3 seconds, allow Shot to be used for sniping
 		// 3 seconds is 360

@@ -80,7 +80,12 @@ public partial class Particle : Node2D
 	{
 		//this.TopLevel = true;
 		this.animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-	
+		
+		
+		this.SetPhysicsProcess(false);
+		this.SetProcess(false);
+		this.Hide();
+		
 	}
 	
 	

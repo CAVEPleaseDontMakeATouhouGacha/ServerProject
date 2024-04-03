@@ -89,8 +89,10 @@ public partial class Shot : Node2D
 	
 	public AnimatedSprite2D animatedSprite2D;
 	
-	public PhysicsShapeQueryParameters2D collisionQuery;
 	public PhysicsDirectSpaceState2D directSpaceState;
+	
+	public PhysicsShapeQueryParameters2D shapeCollisionQuery;
+	
 	
 	
 		
@@ -107,11 +109,12 @@ public partial class Shot : Node2D
 		}
 		
 		
-		this.collisionQuery = new PhysicsShapeQueryParameters2D();
+		this.shapeCollisionQuery = new PhysicsShapeQueryParameters2D();
 		this.directSpaceState = GetWorld2D().DirectSpaceState;
 
-
-		
+		this.SetPhysicsProcess(false);
+		this.SetProcess(false);
+		this.Hide();
 	}
 	
 	
@@ -147,10 +150,10 @@ public partial class Shot : Node2D
 		Rid rectRid = PhysicsServer2D.RectangleShapeCreate();
 		Vector2 rectWidthHeight = new Vector2(cTakkoSmallShotWidth, cTakkoSmallShotHeight);
 		PhysicsServer2D.ShapeSetData(rectRid, rectWidthHeight);
-		collisionQuery.ShapeRid = rectRid;
+		this.shapeCollisionQuery.ShapeRid = rectRid;
 		//!TODO: Maybe change this to false...
-		collisionQuery.CollideWithBodies = true;
-		collisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
+		this.shapeCollisionQuery.CollideWithBodies = true;
+		this.shapeCollisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
 		
 		
 		// Time out after 3 seconds
@@ -191,10 +194,10 @@ public partial class Shot : Node2D
 		Rid rectRid = PhysicsServer2D.RectangleShapeCreate();
 		Vector2 rectWidthHeight = new Vector2(cTakkoBigShotWidth, cTakkoBigShotHeight);
 		PhysicsServer2D.ShapeSetData(rectRid, rectWidthHeight);
-		collisionQuery.ShapeRid = rectRid;
+		this.shapeCollisionQuery.ShapeRid = rectRid;
 		//!TODO: Maybe change this to false...
-		collisionQuery.CollideWithBodies = true;
-		collisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
+		this.shapeCollisionQuery.CollideWithBodies = true;
+		this.shapeCollisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
 		
 		
 		
@@ -235,7 +238,7 @@ public partial class Shot : Node2D
 		}
 		
 		
-		Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = directSpaceState.IntersectShape(collisionQuery, 1);
+		Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = this.directSpaceState.IntersectShape(this.shapeCollisionQuery, 1);
 		if (collisionResult != null) {
 						
 			// There was a collision

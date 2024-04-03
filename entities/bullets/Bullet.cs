@@ -96,8 +96,12 @@ public partial class Bullet : Node2D
 	
 	public AnimatedSprite2D animatedSprite2D;
 	
-	public PhysicsShapeQueryParameters2D collisionQuery;
 	public PhysicsDirectSpaceState2D directSpaceState;
+	
+	public PhysicsShapeQueryParameters2D shapeCollisionQuery;
+	// Probably not required here
+	public PhysicsRayQueryParameters2D rayCollisionQuery;
+	
 	
 		
 	// Called when the node enters the scene tree for the first time.
@@ -106,7 +110,7 @@ public partial class Bullet : Node2D
 		// Bullets do not collide with terrain and stay on top of it
 		this.TopLevel = true;
 		this.animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-		this.collisionQuery = new PhysicsShapeQueryParameters2D();
+		this.shapeCollisionQuery = new PhysicsShapeQueryParameters2D();
 		this.directSpaceState = GetWorld2D().DirectSpaceState;
 		
 		
@@ -116,17 +120,19 @@ public partial class Bullet : Node2D
 		PhysicsServer2D.ShapeSetData(circleRid, radius);
 
 
-
+		this.SetPhysicsProcess(false);
+		this.SetProcess(false);
+		this.Hide();
 		
 		
 		// Set Bullet collision shape as a circle
 		//collisionQuery.Shape = new CircleShape2D();
 		// Use the one below since it's faster
-		collisionQuery.ShapeRid = circleRid;
+		this.shapeCollisionQuery.ShapeRid = circleRid;
 		
 		//!TODO: Maybe change this to false...
-		collisionQuery.CollideWithBodies = true;
-		collisionQuery.CollisionMask = BULLET_COLLISION_LAYER;
+		this.shapeCollisionQuery.CollideWithBodies = true;
+		this.shapeCollisionQuery.CollisionMask = BULLET_COLLISION_LAYER;
 		
 	}
 	
@@ -222,7 +228,7 @@ public partial class Bullet : Node2D
 					
 				// Do collision detection using servers(Backend) so it's as fast as possible
 				// Godot.Collections.Array<Godot.Collections.Dictionary>
-				Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = this.directSpaceState.IntersectShape(collisionQuery, 1);
+				Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = this.directSpaceState.IntersectShape(this.shapeCollisionQuery, 1);
 				if (collisionResult != null) {
 						
 					// There was a collision

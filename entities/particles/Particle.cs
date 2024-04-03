@@ -16,6 +16,19 @@ public partial class Particle : Node2D
 	public const int PARTICLE_STATE_ALIVE = 1;
 	
 	
+	
+	
+	// Particle Movement Types
+	
+	// Particle does not move
+	public const int PARTICLE_MOVETYPE_STAY = 0;
+	// Particle moves in a line using the velocity vector
+	public const int PARTICLE_MOVETYPE_LINE = 1;
+	// Particle stays on top of another entity
+	public const int PARTICLE_MOVETYPE_ONTOPOF = 2;
+	
+	
+	
 	// Shrink while timing out
 	public const int PARTICLE_FLAG_SHRINK = 1;
 	// Grow while timing out
@@ -35,6 +48,9 @@ public partial class Particle : Node2D
 	
 	// Flags for various other effects
 	public int flags;
+	
+	// The type of movement the Particle has
+	public int movementType;
 	
 	// The ID of the Particle
 	public int id;
@@ -57,6 +73,11 @@ public partial class Particle : Node2D
 	// Direction Y, -1 for up, +1 for down, 0 for no movement
 	// Direction X, -1 for left, +1 for right, 0 for no movement
 	public Vector2 direction;
+	
+	
+	// The position of the parent
+	public Vector2 parentPos;
+	
 	
 	// A timer that when it reaches 0 kills the particle
 	public int timeoutTimer;
@@ -112,9 +133,43 @@ public partial class Particle : Node2D
 	
 	public void particle_movement(double delta) {
 		
-		// Update position
-		this.position.Y = this.position.Y + this.velocity.Y;
-		this.position.X = this.position.X + this.velocity.X; 
+		
+		switch(this.movementType) {
+			
+			case (PARTICLE_MOVETYPE_STAY): {
+				
+				// Do nothing
+				
+				break;
+			}
+			
+			case (PARTICLE_MOVETYPE_LINE): {
+				
+				// Linear movement
+				
+				// Update position
+				this.position.Y = this.position.Y + this.velocity.Y;
+				this.position.X = this.position.X + this.velocity.X; 
+				
+				break;
+			}
+			
+			case (PARTICLE_MOVETYPE_ONTOPOF): {
+				
+				// Linear movement
+				
+				// Update position
+				this.position.Y = this.parentPos.Y;
+				this.position.X = this.parentPos.X; 
+				
+				break;
+			}
+			
+			
+			
+		};
+		
+		
 		
 		// Update timeout
 		this.timeoutTimer = this.timeoutTimer - 1;

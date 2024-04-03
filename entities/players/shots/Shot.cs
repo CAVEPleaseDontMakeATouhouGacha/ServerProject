@@ -161,8 +161,8 @@ public partial class Shot : Node2D
 		this.timeoutTimer = 360;
 		
 		
-		this.animatedSprite2D.Animation = "SmallShot";
-		//this.animatedSprite2D.Play("SmallShot");
+		//this.animatedSprite2D.Animation = "SmallShot";
+		this.animatedSprite2D.Play("SmallShot");
 		
 	}
 	
@@ -206,8 +206,8 @@ public partial class Shot : Node2D
 		this.timeoutTimer = 360;
 		
 		
-		this.animatedSprite2D.Animation = "BigShot";
-		//this.animatedSprite2D.Play("BigShot");
+		//this.animatedSprite2D.Animation = "BigShot";
+		this.animatedSprite2D.Play("BigShot");
 		
 	}
 	

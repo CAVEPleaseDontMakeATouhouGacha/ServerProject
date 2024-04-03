@@ -199,8 +199,20 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		if ((this.keystates & PLAYER_INPUTFLAG_SHOT) != PLAYER_INPUTFLAG_SHOT) {
 		
-			// Fire a small shot
-			if (this.chargeShotTimer <= cWeakChargeShot) {
+			// Fire a Big Shot if we reached the timer end
+			 if (this.chargeShotTimer <= 0) {
+				
+				
+				Shot bigShot = this.entityPooler.getShot();
+
+				// Now set members
+				bigShot.spawnBig(this.position.X, this.position.Y, this.lookDirection);
+			
+				
+				
+			} else if (this.chargeShotTimer <= cWeakChargeShot) {
+				
+				// If we have not reached the timer we can prpbably fire a small shot
 				
 				//Shot smallShot = shotScene.Instantiate<Shot>();
 				
@@ -211,21 +223,10 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				smallShot.spawnSmall(this.position.X, this.position.Y, this.lookDirection);
 			
 				
-	
-				
-				
-			} else if (this.chargeShotTimer <= 0) {
-				
-				
-				Shot bigShot = this.entityPooler.getShot();
-
-				// Now set members
-				bigShot.spawnBig(this.position.X, this.position.Y, this.lookDirection);
-			
-				
-				
 			}
-			
+				
+				
+			// Reset the Charge Shot Timer back to tye max value
 			this.chargeShotTimer = cMaxChargeShotLength;
 			
 		} else {
@@ -701,6 +702,44 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		};
 		
 		
+		// If we are charging a Shot
+		if ((this.keystates & PLAYER_INPUTFLAG_SHOT) == PLAYER_INPUTFLAG_SHOT) {
+			
+			
+			Particle shotCharge = this.entityPooler.getParticle();
+			Vector2 nomove = new Vector2(0.0f, 0.0f);
+			shotCharge.spawn(this.position, nomove, 0.0f, 3);
+
+			
+			shotCharge.movementType = Particle.PARTICLE_MOVETYPE_ONTOPOF;		
+			shotCharge.parentPos = this.position;
+			
+			// Change layer
+			shotCharge.ZIndex = 5;
+			
+			if (this.chargeShotTimer <= 0) {
+			
+				// Charge Shot is ready
+				shotCharge.animatedSprite2D.Play("ChargingReady");
+				
+				
+			} else if (this.chargeShotTimer <= cWeakChargeShot) {
+				
+				// We can do a weak Charge Shot
+				shotCharge.animatedSprite2D.Play("ChargingMid");
+			
+			} else {
+				
+				// We juts started Charging	
+				shotCharge.animatedSprite2D.Play("ChargingStart");
+			}
+			
+			
+			
+			
+			
+		}
+		
 		
 
 	
@@ -715,9 +754,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			//level.AddChild(afterImage);
 			
 			Vector2 nomove = new Vector2(0.0f, 0.0f);
-			int afterImageDuration = 30;
-			afterImage.spawn(this.position, nomove, 0.0f, 30);
+			const int afterImageDuration = 30;
+			afterImage.spawn(this.position, nomove, 0.0f, afterImageDuration);
 			//afterImage.spawn(GlobalPosition, nomove, 0.0f, 120);
+			
+			afterImage.movementType = Particle.PARTICLE_MOVETYPE_STAY;
 			
 			SpriteFrames newFrames = new SpriteFrames();
 			newFrames.AddAnimation("still");
@@ -727,8 +768,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			//afterImage.animatedSprite2D.SpriteFrames = this.animatedSprite2D.SpriteFrames;
 			//afterImage.animatedSprite2D.Play("Idle", 0.0f, false);
 			
-			
-			
+			//afterImage.animatedSprite2D.Play("default");
+			afterImage.animatedSprite2D.Play("ChargingStart");
 			
 		}
 		

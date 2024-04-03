@@ -19,6 +19,11 @@ public partial class Shot : Node2D
 	public const int SHOT_FLAG_PENETRATE = 1;
 	
 	
+	
+	
+	public const int SHOT_COLLISION_LAYER = 6;
+	
+	
 	//======================
 	//! Members
 	//======================
@@ -30,6 +35,12 @@ public partial class Shot : Node2D
 	
 	// The flags of the shot 
 	public int flags;
+	
+	
+	// The ID of the Shot
+	public int id;
+	// The next free Shot in the Pool
+	public int nextFree;
 	
 	
 	//! Movement
@@ -62,7 +73,17 @@ public partial class Shot : Node2D
 	public int timeoutTimer;
 	
 	
+	//! Misc Members
+	
+	// Pool this Shot belongs to
+	public EntityPooler parentPool;
+	
+	
 	public AnimatedSprite2D animatedSprite2D;
+	
+	public PhysicsShapeQueryParameters2D collisionQuery;
+	public PhysicsDirectSpaceState2D directSpaceState;
+	
 	
 		
 	// Called when the node enters the scene tree for the first time.
@@ -76,6 +97,23 @@ public partial class Shot : Node2D
 			GD.Print("Unable to get animation node");
 			
 		}
+		
+		
+		this.collisionQuery = new PhysicsShapeQueryParameters2D();
+		this.directSpaceState = GetWorld2D().DirectSpaceState;
+		
+		
+		
+		Rid rectRid = PhysicsServer2D.RectangleShapeCreate();
+		float radius = 64.0f;
+		PhysicsServer2D.ShapeSetData(rectRid, radius);
+
+
+		collisionQuery.ShapeRid = rectRid;
+		
+		//!TODO: Maybe change this to false...
+		collisionQuery.CollideWithBodies = true;
+		collisionQuery.CollisionMask = SHOT_COLLISION_LAYER;
 		
 		
 	}
@@ -173,9 +211,21 @@ public partial class Shot : Node2D
 		
 		if (this.timeoutTimer <= 0) {
 			
-			QueueFree();
+			// Keep Shot in memory for later reusing, just stop processing it
+			this.SetProcess(false);
+			this.Hide();
+			//QueueFree();
 			
 		}
+		
+		
+		Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = directSpaceState.IntersectShape(collisionQuery, 1);
+		if (collisionResult != null) {
+						
+			// There was a collision
+						
+		}
+		
 		
 		
 		this.GlobalPosition = this.position;

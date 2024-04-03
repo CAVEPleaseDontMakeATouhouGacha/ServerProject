@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cl4gy36e063n2"]
+
+[ext_resource type="Script" path="res://entities/misc/EntityPooler.cs" id="1_fiv2q"]
+
+[node name="EntityPooler" type="Node"]
+script = ExtResource("1_fiv2q")

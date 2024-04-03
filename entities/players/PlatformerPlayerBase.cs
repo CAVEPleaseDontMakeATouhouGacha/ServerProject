@@ -260,6 +260,11 @@ public partial class PlatformerPlayerBase : Node2D
 	public Node2D level;
 	public TileMap tilemap;
 	
+	// Spawns various entities
+	public EntityPooler entityPooler;
+	
+	// Spawns Shots
+	
 	// Childs
 	
 	public AnimatedSprite2D animatedSprite2D;
@@ -929,6 +934,11 @@ public partial class PlatformerPlayerBase : Node2D
 		}
 		
 		//GD.Print("End player init");
+		
+		// Get Particle Pool
+		this.entityPooler = level.GetNode<EntityPooler>("EntityPooler");
+		
+		
 		
 	}
 	

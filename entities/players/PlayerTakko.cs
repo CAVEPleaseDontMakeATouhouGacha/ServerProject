@@ -9,7 +9,6 @@ public partial class PlayerTakko : PlatformerPlayerBase
 {
 	
 	// Things we can spawn
-	PackedScene particleScene = GD.Load<PackedScene>("res://entities/particles/Particle.tscn");
 	PackedScene shotScene = GD.Load<PackedScene>("res://entities/players/shots/Shot.tscn");
 	
 	
@@ -704,16 +703,16 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 
-		
+	
 		// If we are moving fast we let out after images
-		if (this.scalarSpeed > cWalkSpeed) {
+		if ((this.scalarSpeed > cWalkSpeed) || (this.state == PLAYER_STATE_DASHINGAIR) || (this.state == PLAYER_STATE_DASHINGGROUND)) {
 			
-			Particle afterImage = particleScene.Instantiate<Particle>();
+			Particle afterImage = this.entityPooler.getParticle();
 			// Spawn the afterimage by adding it to the Main scene.
 			//AddChild(afterImage);
 			
 			// Add after image to level
-			level.AddChild(afterImage);
+			//level.AddChild(afterImage);
 			
 			Vector2 nomove = new Vector2(0.0f, 0.0f);
 			int afterImageDuration = 30;

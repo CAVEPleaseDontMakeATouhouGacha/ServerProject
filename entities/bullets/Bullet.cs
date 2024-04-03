@@ -26,6 +26,10 @@ public partial class Bullet : Node2D
 	public const int BULLET_FLAG_GRAZABLE = 2;
 	
 	
+	
+	public const int BULLET_COLLISION_LAYER = 5;
+	
+	
 	//======================
 	//! Members
 	//======================
@@ -37,6 +41,11 @@ public partial class Bullet : Node2D
 	
 	public int flags;
 	
+	
+	// The ID of the Bullet
+	public int id;
+	// The next free Bullet in the Pool
+	public int nextFree;
 	
 	
 	//! Movement
@@ -80,7 +89,15 @@ public partial class Bullet : Node2D
 	public const int cDelayDecayLength = 16;
 	
 	
+	//! Misc Members
+	
+	// Pool this Bullet belongs to
+	public EntityPooler parentPool;
+	
 	public AnimatedSprite2D animatedSprite2D;
+	
+	public PhysicsShapeQueryParameters2D collisionQuery;
+	public PhysicsDirectSpaceState2D directSpaceState;
 	
 		
 	// Called when the node enters the scene tree for the first time.
@@ -89,7 +106,28 @@ public partial class Bullet : Node2D
 		// Bullets do not collide with terrain and stay on top of it
 		this.TopLevel = true;
 		this.animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-	
+		this.collisionQuery = new PhysicsShapeQueryParameters2D();
+		this.directSpaceState = GetWorld2D().DirectSpaceState;
+		
+		
+		
+		Rid circleRid = PhysicsServer2D.CircleShapeCreate();
+		float radius = 64.0f;
+		PhysicsServer2D.ShapeSetData(circleRid, radius);
+
+
+
+		
+		
+		// Set Bullet collision shape as a circle
+		//collisionQuery.Shape = new CircleShape2D();
+		// Use the one below since it's faster
+		collisionQuery.ShapeRid = circleRid;
+		
+		//!TODO: Maybe change this to false...
+		collisionQuery.CollideWithBodies = true;
+		collisionQuery.CollisionMask = BULLET_COLLISION_LAYER;
+		
 	}
 	
 	
@@ -120,8 +158,9 @@ public partial class Bullet : Node2D
 		
 		// Set Delay
 		this.delayDecayTimer = cDelayDecayLength;
-			
 		
+		// Start Delay Animation
+		this.animatedSprite2D.Play("Delay");
 		
 	}
 	
@@ -135,6 +174,14 @@ public partial class Bullet : Node2D
 		// Record previous position
 		this.prevPosition = this.position;
 		
+		
+		
+		// Update position no matter the state
+		this.position.Y = this.position.Y + this.velocity.Y;
+		this.position.X = this.position.X + this.velocity.X; 
+		
+		
+		
 		switch (this.state) {
 			
 			case(BULLET_STATE_DELAY): {
@@ -144,6 +191,7 @@ public partial class Bullet : Node2D
 				this.delayDecayTimer = this.delayDecayTimer - 1;
 		
 				if (this.delayDecayTimer <= 0) {
+					
 					// The bullet is now airborne
 					this.state = BULLET_STATE_AIRBORNE;
 					
@@ -152,7 +200,10 @@ public partial class Bullet : Node2D
 					this.velocity.Y = direction.Y * scalarSpeed;
 					this.velocity.X = direction.X * scalarSpeed;
 					
-					// Do collision detection
+					// Play the airborne animation
+					this.animatedSprite2D.Play("Pellet");
+					
+					//!MAYBE: Do a collision test here
 					
 				}
 				
@@ -161,6 +212,26 @@ public partial class Bullet : Node2D
 			}
 			
 			case(BULLET_STATE_AIRBORNE): {
+				
+				
+				
+				// Collide with player
+				// Use ray casting if needed since this has no continuous collision detection
+				// https://docs.godotengine.org/en/stable/tutorials/physics/ray-casting.html
+				// https://github.com/godotengine/godot/issues/2217
+					
+				// Do collision detection using servers(Backend) so it's as fast as possible
+				// Godot.Collections.Array<Godot.Collections.Dictionary>
+				Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = directSpaceState.IntersectShape(collisionQuery, 1);
+				if (collisionResult != null) {
+						
+					// There was a collision
+						
+				}
+				
+				
+				
+				
 				
 				
 				// Update timeout
@@ -177,6 +248,9 @@ public partial class Bullet : Node2D
 					
 					// Set Decay timer
 					this.delayDecayTimer = cDelayDecayLength;
+					
+					this.animatedSprite2D.Play("Decay");
+					
 				}
 				
 				
@@ -191,8 +265,12 @@ public partial class Bullet : Node2D
 				this.delayDecayTimer = this.delayDecayTimer - 1;
 		
 				if (this.delayDecayTimer <= 0) {
+					
 					// Finally free the bullet for real
-					QueueFree();
+					// Keep Particle in memory for later reusing, just stop processing it
+					this.SetProcess(false);
+					this.Hide();
+					//QueueFree();
 			
 				}
 				
@@ -206,9 +284,7 @@ public partial class Bullet : Node2D
 			
 		};
 		
-		// Update position no matter the state
-		this.position.Y = this.position.Y + this.velocity.Y;
-		this.position.X = this.position.X + this.velocity.X; 
+		
 		
 		
 		

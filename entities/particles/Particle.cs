@@ -36,7 +36,10 @@ public partial class Particle : Node2D
 	// Flags for various other effects
 	public int flags;
 	
-	
+	// The ID of the Particle
+	public int id;
+	// The next free Particle in the Pool
+	public int nextFree;
 	
 	//! Movement
 	
@@ -62,6 +65,12 @@ public partial class Particle : Node2D
 	public float shrinkGrowDelta;
 	// The delta of diffenrence when becoming transparent
 	public float transparencyDelta;
+	
+	
+	
+	// Pool this Particle belongs to
+	public EntityPooler parentPool;
+	
 	
 	public AnimatedSprite2D animatedSprite2D;
 	
@@ -107,7 +116,11 @@ public partial class Particle : Node2D
 		
 		if (this.timeoutTimer <= 0) {
 			
-			QueueFree();
+			// Keep Particle in memory for later reusing, just stop processing it
+			this.parentPool.freeParticle(this.id);
+			//this.SetProcess(false);
+			//this.Hide();
+			//QueueFree();
 			
 		}
 		

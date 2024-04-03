@@ -222,16 +222,20 @@ public partial class Bullet : Node2D
 					
 				// Do collision detection using servers(Backend) so it's as fast as possible
 				// Godot.Collections.Array<Godot.Collections.Dictionary>
-				Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = directSpaceState.IntersectShape(collisionQuery, 1);
+				Godot.Collections.Array<Godot.Collections.Dictionary> collisionResult = this.directSpaceState.IntersectShape(collisionQuery, 1);
 				if (collisionResult != null) {
 						
 					// There was a collision
 						
 				}
 				
-				
-				
-				
+				// Raycast collision
+				/*
+				// Create a ray cast query from the previous position of the Bullet to tye current one
+				PhysicsRayQueryParameters2D rayQuery = PhysicsRayQueryParameters2D.Create(this.prevPosition, this.position);
+				Godot.Collections.Dictionary rayCastHit = this.directSpaceState.IntersectRay(rayQuery);
+				Vector2 hitPosition = (Vector2)rayCastHit["position"];
+				*/
 				
 				
 				// Update timeout

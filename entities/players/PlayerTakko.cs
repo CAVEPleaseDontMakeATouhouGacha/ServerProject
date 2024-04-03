@@ -202,10 +202,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			// Fire a small shot
 			if (this.chargeShotTimer <= cWeakChargeShot) {
 				
-				Shot smallShot = shotScene.Instantiate<Shot>();
+				//Shot smallShot = shotScene.Instantiate<Shot>();
 				
 				// Spawn the Shot by adding it to the Main scene.
-				level.AddChild(smallShot);
+				//level.AddChild(smallShot);
+				Shot smallShot = this.entityPooler.getShot();
 				// Only after do we set members
 				smallShot.spawnSmall(this.position.X, this.position.Y, this.lookDirection);
 			
@@ -215,10 +216,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 			} else if (this.chargeShotTimer <= 0) {
 				
-				Shot bigShot = shotScene.Instantiate<Shot>();
 				
-				// Spawn the Shot by adding it to the Main scene.
-				level.AddChild(bigShot);
+				Shot bigShot = this.entityPooler.getShot();
+
 				// Now set members
 				bigShot.spawnBig(this.position.X, this.position.Y, this.lookDirection);
 			

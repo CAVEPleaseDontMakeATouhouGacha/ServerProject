@@ -130,6 +130,8 @@ public partial class EntityPooler : Node
 			//particle.Visible = false;
 			particle.Hide();
 			
+			particle.ProcessMode = Node.ProcessModeEnum.Pausable;
+			//PROCESS_MODE_INHERIT
 			this.particlePool[currParticle] = particle;
 			
 			

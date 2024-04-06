@@ -420,12 +420,18 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				// Calculate normal movement speed
 				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
 				
-				bool bWasJumpStarted = this.movementGeneral_startJump(delta);
-				if (bWasJumpStarted == true) {
+				
+				// Check raw keystates so player can hold the jump button to instantly jump
+				// when they touch the ground
+				if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+					
+					this.movementGeneral_startJump(delta);
+					
 					// Start handling jump on this tick
 					this.state = PLAYER_STATE_JUMPING;
 					goto case(PLAYER_STATE_JUMPING);
 				}
+				
 				
 				//!TODO: Maybe move this to another place in the future
 				this.movementGeneral_updatePositionWithVelocity(delta);
@@ -463,8 +469,6 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			
 			case (PLAYER_STATE_JUMPING): {
 				
-				this.movementGeneral_calculateDirections(delta);
-				
 				bool startedAirDashing = this.movement_takko_startDash(delta);
 				if (startedAirDashing == true) {
 					// Take away one airDash if we are in the air
@@ -473,6 +477,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 					this.state = PLAYER_STATE_DASHINGAIR;
 					goto case(PLAYER_STATE_DASHINGAIR);
 				}
+				
+				
+				this.movementGeneral_calculateDirections(delta);
 				
 				
 				// Calculate normal movement speed		
@@ -508,13 +515,19 @@ public partial class PlayerTakko : PlatformerPlayerBase
 					this.state = PLAYER_STATE_GROUNDED;
 					// Give the normal walking speed back
 					this.scalarSpeed = cWalkSpeed;
+					// Give back the ability to jump
+					this.jumpsLeft = cMaxJumps;
 					goto case(PLAYER_STATE_GROUNDED);
 				}
 				
 				this.movementGeneral_calculateDirections(delta);
 				
-				//bool hasDashJumped = movement_takko_startDashJump(delta);
-				
+				bool bHasDashJumped = movement_takko_startDashJump(delta);
+				if (bHasDashJumped == true) {
+					// Start handling jump on this tick
+					this.state = PLAYER_STATE_JUMPING;
+					goto case(PLAYER_STATE_JUMPING);
+				}
 				
 				this.movement_takko_dashMovement(delta);
 				
@@ -600,8 +613,14 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			//this.position.Y = (float)bOnGround;
 			this.position.Y = 900;
 			
-			// We are now on ground
-			this.state = PLAYER_STATE_GROUNDED;
+			// If we are not dashing on the ground
+			if (this.state != PLAYER_STATE_DASHINGGROUND) {
+				
+				// We are now on ground
+				this.state = PLAYER_STATE_GROUNDED;
+				
+			}
+			
 			
 			
 			// Reset vertical momentum

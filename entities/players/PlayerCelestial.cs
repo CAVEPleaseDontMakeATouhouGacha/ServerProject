@@ -23,8 +23,12 @@ public partial class PlayerCelestial : PlatformerPlayerBase
 				// Calculate normal movement speed
 				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
 				
-				bool bWasJumpStarted = this.movementGeneral_startJump(delta);
-				if (bWasJumpStarted == true) {
+				// Check raw keystates so player can hold the jump button to instantly jump
+				// when they touch the ground
+				if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+					
+					this.movementGeneral_startJump(delta);
+					
 					// Start handling jump on this tick
 					this.state = PLAYER_STATE_JUMPING;
 					goto case(PLAYER_STATE_JUMPING);
@@ -47,6 +51,16 @@ public partial class PlayerCelestial : PlatformerPlayerBase
 				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
 				
 				
+				// Check look keystates so player doesn't activate double jump the moment they get off the air
+				if ((this.lookKeystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+					
+					this.movementGeneral_startJump(delta);
+					
+					// Start handling jump on this tick
+					this.state = PLAYER_STATE_JUMPING;
+					goto case(PLAYER_STATE_JUMPING);
+				}
+				
 				
 				this.movementGeneral_applyGravity(delta);
 				
@@ -66,6 +80,17 @@ public partial class PlayerCelestial : PlatformerPlayerBase
 				
 				// Calculate normal movement speed		
 				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
+				
+				// Check look keystates so player doesn't activate double jump the moment they get off the air
+				if ((this.lookKeystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+					
+					this.movementGeneral_startJump(delta);
+					
+					// Start handling jump on this tick
+					this.state = PLAYER_STATE_JUMPING;
+					goto case(PLAYER_STATE_JUMPING);
+				}
+				
 				
 				this.movementGeneral_applyGravity(delta);
 				

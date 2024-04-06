@@ -47,7 +47,7 @@ public partial class PlatformerPlayerBase : Node2D
 	//! Constants
 	//======================
 	
-	// Keystate Input bitflags
+	//! Keystate Input bitflags
 	public const int PLAYER_INPUTFLAG_UP = 1;
 	public const int PLAYER_INPUTFLAG_DOWN = 2;
 	public const int PLAYER_INPUTFLAG_LEFT = 4;
@@ -57,11 +57,17 @@ public partial class PlatformerPlayerBase : Node2D
 	public const int PLAYER_INPUTFLAG_MELEE = 64;
 	public const int PLAYER_INPUTFLAG_SHOT = 128;
 	
-	// Keystate combinations
+	//! Keystate combinations
+	
+	// When the player is pressing up and down at the same time
 	public const int PLAYER_INPUTFLAG_UPDOWN = 3;
+	// When the player is pressing left and right at the same time
 	public const int PLAYER_INPUTFLAG_LEFTRIGHT = 12;
+	// When the player is pressing up, down, left, right at the same time
 	public const int PLAYER_INPUTFLAG_ALLMOVEMENT = 15;
 	
+	// Inputs related to actions other than movement, like dashing, shooting, melee and jumping
+	public const int PLAYER_INPUTFLAG_ACTIONS = 240;
 	
 	
 	// Player States
@@ -131,6 +137,7 @@ public partial class PlatformerPlayerBase : Node2D
 	// Null-Canceling Movement keystates
 	// This makes it so tha player can instantly change direction even if they are already
 	// holding down a movement key
+	// Also allows to see if the player just pressed a key instead of holding it
 	public int lookKeystates;
 	
 	
@@ -144,8 +151,8 @@ public partial class PlatformerPlayerBase : Node2D
 	// Valid keystates are the ones that make sense
 	public int lastValidLeftRight;
 	
-	
-		
+	// A collection of keystates to know if the user should repress the jump key or other inputs
+	public int lastValidPressAction;
 
 	
 	
@@ -336,9 +343,31 @@ public partial class PlatformerPlayerBase : Node2D
 		
 		
 		
+		// Force Repressing action keys
+		
+		int pressingActions = this.keystates & PLAYER_INPUTFLAG_ACTIONS;
+		//this.lookKeystates = this.lookKeystates ^ pressingActions; 
+		if (pressingActions == this.lastValidPressAction) {
+			
+			this.lookKeystates = this.lookKeystates ^ this.lastValidPressAction;
+			
+		} else {
+			
+			this.lastValidPressAction = pressingActions;
+			
+		}
+		
 	}
 	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool inputflag_holding(int inputflag) {
+		return ((this.keystates & inputflag) == inputflag);
+	}
 	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool inputflag_pressing(int inputflag) {
+		return ((this.lookKeystates & inputflag) == inputflag);
+	}
 	
 	
 	//======================
@@ -371,7 +400,7 @@ public partial class PlatformerPlayerBase : Node2D
 		
 		// Calculate directions
 		
-		// Get horizontal input in bitflags
+		// Get horizontal input in bitflags from the lookKeystates so we can cancel null movement
 		int verticalInput = (this.lookKeystates & PLAYER_INPUTFLAG_UPDOWN);
 		int horizontalInput = (this.lookKeystates & PLAYER_INPUTFLAG_LEFTRIGHT) >> 2;
 		
@@ -412,37 +441,29 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool movementGeneral_startJump(double delta) {
-		
-		// Handle jumping, yes for one tick the jump receives no gravity
-		if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+	public void movementGeneral_startJump(double delta) {
+	
+		// If there are jumps left
+		if (this.jumpsLeft > 0) {
+				
+				
+			// No longer grounded
+			this.state = PLAYER_STATE_JUMPING;
+			this.flags = flags & ~PLAYER_BITFLAG_GROUNDED;
+			this.flags = flags | PLAYER_BITFLAG_JUMPING;
+					
+			this.jumpsLeft = this.jumpsLeft - 1;
+					
+			// Give full jump force and later check if player stopped holding down button
+			this.velocity.Y = -this.jumpForce;
+					
+			// Slope jumps
+			//velocity.X = velocity.X - (jumpForce * sin(Ground Angle));
+			//velocity.Y = velocity.Y - (jumpForce * cos(Ground Angle));
 			
-			// If there are jumps left
-			if (this.jumpsLeft > 0) {
+		} 
 				
-				
-				// No longer grounded
-				this.state = PLAYER_STATE_JUMPING;
-				this.flags = flags & ~PLAYER_BITFLAG_GROUNDED;
-				this.flags = flags | PLAYER_BITFLAG_JUMPING;
-					
-				this.jumpsLeft = this.jumpsLeft - 1;
-					
-				// Give full jump force and later check if player stopped holding down button
-				this.velocity.Y = -this.jumpForce;
-					
-				// Slope jumps
-				//velocity.X = velocity.X - (jumpForce * sin(Ground Angle));
-				//velocity.Y = velocity.Y - (jumpForce * cos(Ground Angle));
-				return true;
-			} 
-				
-				
-				
-				
-		}
-		
-		return false;
+
 		
 	}
 	
@@ -467,7 +488,34 @@ public partial class PlatformerPlayerBase : Node2D
 		
 	}
 	
-	
+	/*
+	// 8-way movement, 4 Cardinal, 4 Ordinal
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_8WayMovement(double delta) {
+		
+			
+		float isCardinal = this.moveDirection.Y * this.moveDirection.X;
+		this.currDashSpeed = 0.0f;
+			
+		if (isCardinal != 0) {
+				
+			// Ordinal Dash
+			this.currDashSpeed = cOrdinalDashSpeed;
+				
+		} else {
+				
+			// Cardinal Dash
+			this.currDashSpeed = cCardinalDashSpeed;
+					
+		}
+			
+		// Apply 8 directional movement
+		this.velocity.Y = this.moveDirection.Y * this.currDashSpeed;
+		this.velocity.X = this.moveDirection.X * this.currDashSpeed;
+			
+
+	}
+	*/
 	
 	
 	

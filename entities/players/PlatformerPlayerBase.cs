@@ -313,7 +313,7 @@ public partial class PlatformerPlayerBase : Node2D
 		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_DASH")) << 4);
 		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_JUMP")) << 5);
 		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_MELEE")) << 6);
-		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_SHOT")) << 7);
+		this.keystates = this.keystates | (Convert.ToByte(Input.IsActionPressed("INPUT_SHOOT")) << 7);
 		
 		
 		

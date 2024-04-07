@@ -1,10 +1,44 @@
-[gd_scene load_steps=6 format=3 uid="uid://c30m2kbycx3cv"]
+[gd_scene load_steps=16 format=3 uid="uid://c30m2kbycx3cv"]
 
 [ext_resource type="PackedScene" uid="uid://dpued6rw723hn" path="res://entities/players/PlatformerPlayerBase.tscn" id="1_0ln3d"]
 [ext_resource type="PackedScene" uid="uid://l5k36aeod66v" path="res://levels/BaseTileSet.tscn" id="2_22boq"]
 [ext_resource type="PackedScene" uid="uid://cl4gy36e063n2" path="res://entities/misc/EntityPooler.tscn" id="3_ttf5r"]
 [ext_resource type="Script" path="res://entities/players/HUD.cs" id="4_qt48p"]
 [ext_resource type="FontFile" uid="uid://5t72gr6tqyty" path="res://resources/Connecting Chain Handserif.ttf" id="5_vd5q1"]
+[ext_resource type="Texture2D" uid="uid://clju2i212nsro" path="res://resources/hud/inputDisplay.png" id="6_cn7bo"]
+[ext_resource type="Texture2D" uid="uid://q1i56o7ge0my" path="res://levels/inputDisplay.png" id="7_1jveg"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0tk6p"]
+atlas = ExtResource("6_cn7bo")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_axrbc"]
+atlas = ExtResource("6_cn7bo")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0funo"]
+atlas = ExtResource("7_1jveg")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e5wva"]
+atlas = ExtResource("7_1jveg")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_55bky"]
+atlas = ExtResource("7_1jveg")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tqku0"]
+atlas = ExtResource("7_1jveg")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eoctt"]
+atlas = ExtResource("7_1jveg")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_glggb"]
+atlas = ExtResource("7_1jveg")
+region = Rect2(224, 0, 32, 32)
 
 [node name="Level" type="Node2D"]
 
@@ -47,3 +81,81 @@ size_flags_vertical = 8
 theme_override_fonts/font = ExtResource("5_vd5q1")
 theme_override_font_sizes/font_size = 32
 metadata/_edit_use_anchors_ = true
+
+[node name="InputUp" type="TextureRect" parent="HUD"]
+offset_left = 430.0
+offset_top = 1010.0
+offset_right = 470.0
+offset_bottom = 1050.0
+size_flags_vertical = 8
+texture = SubResource("AtlasTexture_0tk6p")
+metadata/_edit_use_anchors_ = true
+
+[node name="InputDown" type="TextureRect" parent="HUD"]
+offset_left = 494.0
+offset_top = 1016.0
+offset_right = 534.0
+offset_bottom = 1056.0
+texture = SubResource("AtlasTexture_axrbc")
+
+[node name="InputLeft" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("AtlasTexture_0funo")
+
+[node name="InputRight" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("AtlasTexture_e5wva")
+
+[node name="InputDash" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("AtlasTexture_55bky")
+
+[node name="InputShoot" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("AtlasTexture_tqku0")
+
+[node name="InputMelee" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("AtlasTexture_eoctt")
+
+[node name="InputJump" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("AtlasTexture_glggb")
+
+[node name="LookupUp" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupDown" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupLeft" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupRight" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupDash" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupShot" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupMelee" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LookupJump" type="TextureRect" parent="HUD"]
+offset_right = 40.0
+offset_bottom = 40.0

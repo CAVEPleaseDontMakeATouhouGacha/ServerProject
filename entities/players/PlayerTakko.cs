@@ -197,7 +197,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 
 		
-		if ((this.keystates & PLAYER_INPUTFLAG_SHOT) != PLAYER_INPUTFLAG_SHOT) {
+		if ((this.keystates & PLAYER_INPUTFLAG_SHOOT) != PLAYER_INPUTFLAG_SHOOT) {
 		
 			// Fire a Big Shot if we reached the timer end
 			 if (this.chargeShotTimer <= 0) {
@@ -424,6 +424,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				// Check raw keystates so player can hold the jump button to instantly jump
 				// when they touch the ground
 				if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+					
+					// Force player to repress jump
+					//this.actionRepressForcer = this.actionRepressForcer | PLAYER_INPUTFLAG_JUMP;
 					
 					this.movementGeneral_startJump(delta);
 					
@@ -722,7 +725,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 		// If we are charging a Shot
-		if ((this.keystates & PLAYER_INPUTFLAG_SHOT) == PLAYER_INPUTFLAG_SHOT) {
+		if ((this.keystates & PLAYER_INPUTFLAG_SHOOT) == PLAYER_INPUTFLAG_SHOOT) {
 			
 			
 			Particle shotCharge = this.entityPooler.getParticle();

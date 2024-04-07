@@ -55,7 +55,7 @@ public partial class PlatformerPlayerBase : Node2D
 	public const int PLAYER_INPUTFLAG_DASH = 16;
 	public const int PLAYER_INPUTFLAG_JUMP = 32;
 	public const int PLAYER_INPUTFLAG_MELEE = 64;
-	public const int PLAYER_INPUTFLAG_SHOT = 128;
+	public const int PLAYER_INPUTFLAG_SHOOT = 128;
 	
 	//! Keystate combinations
 	
@@ -154,7 +154,9 @@ public partial class PlatformerPlayerBase : Node2D
 	// A collection of keystates to know if the user should repress the jump key or other inputs
 	public int lastValidPressAction;
 
-	
+	// Used to force the player to repress an action, this will however 
+	//hold the input flag until it is used by the update code
+	public int actionRepressForcer; 
 	
 	
 	//! Movement
@@ -343,8 +345,8 @@ public partial class PlatformerPlayerBase : Node2D
 		
 		
 		
-		// Force Repressing action keys
-		
+		// Just pressed Action key
+		/*
 		int pressingActions = this.keystates & PLAYER_INPUTFLAG_ACTIONS;
 		//this.lookKeystates = this.lookKeystates ^ pressingActions; 
 		if (pressingActions == this.lastValidPressAction) {
@@ -356,6 +358,22 @@ public partial class PlatformerPlayerBase : Node2D
 			this.lastValidPressAction = pressingActions;
 			
 		}
+		*/
+		
+		//! OPTIMIZE: There has to be a better way to do this... and no I'm not talking about clearing the bitflag
+		// Force repressing key but still hold it
+		
+		int repressActions = this.keystates & PLAYER_INPUTFLAG_ACTIONS;
+		
+		// If player has stopped holding jump
+		if ((this.keystates & PLAYER_INPUTFLAG_JUMP) != PLAYER_INPUTFLAG_JUMP) {
+			// Stop jump repress forcer
+			this.actionRepressForcer = this.actionRepressForcer & ~PLAYER_INPUTFLAG_JUMP;
+		}
+		
+		// Force the player to repress action keys if the forcer is 1 in one of the input flags
+		this.lookKeystates = this.lookKeystates ^ this.actionRepressForcer;
+		
 		
 	}
 	

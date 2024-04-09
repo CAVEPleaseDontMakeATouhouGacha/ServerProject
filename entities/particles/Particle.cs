@@ -110,7 +110,28 @@ public partial class Particle : Node2D
 	}
 	
 	
-	public void spawn(Vector2 spawnPos, Vector2 dir, float scalarSpeed, int timeout) {
+	
+	public void spawnStayMove(Vector2 spawnPos, int timeout) {
+		
+		this.position.Y = spawnPos.Y;
+		this.position.X = spawnPos.X;
+		
+		this.GlobalPosition = this.position;
+		
+		this.scalarSpeed = 0.0f;
+		
+		this.velocity.Y = 0.0f;
+		this.velocity.X = 0.0f;
+		
+		this.timeoutTimer = timeout;
+		
+		this.movementType = Particle.PARTICLE_MOVETYPE_STAY;
+		
+	}
+	
+	
+	
+	public void spawnLineMove(Vector2 spawnPos, Vector2 dir, float scalarSpeed, int timeout) {
 		
 		this.position.Y = spawnPos.Y;
 		this.position.X = spawnPos.X;
@@ -126,9 +147,28 @@ public partial class Particle : Node2D
 		
 		this.timeoutTimer = timeout;
 		
-		
+		this.movementType = Particle.PARTICLE_MOVETYPE_LINE;
 		
 	}
+	
+	
+	
+	public void spawnOnTopOfMove(Vector2 spawnPos, Vector2 recvParentPos, int timeout) {
+		
+		this.position.Y = spawnPos.Y;
+		this.position.X = spawnPos.X;
+		
+		//this.Position = this.position;
+		this.GlobalPosition = this.position;
+		
+		this.parentPos = recvParentPos;
+		
+		this.timeoutTimer = timeout;
+		
+		this.movementType = Particle.PARTICLE_MOVETYPE_ONTOPOF;
+		
+	}
+	
 	
 	
 	public void particle_movement(double delta) {

@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dmd4lf6jxt67m"]
+[gd_scene load_steps=8 format=3 uid="uid://dmd4lf6jxt67m"]
 
 [ext_resource type="Script" path="res://entities/particles/Particle.cs" id="1_e156t"]
 [ext_resource type="Texture2D" uid="uid://bn2f1fmkt3ndt" path="res://resources/player/idle01.png" id="2_3nud4"]
 [ext_resource type="Texture2D" uid="uid://d8e06q2vc1uc" path="res://resources/player/chargingMid.png" id="2_lsatn"]
 [ext_resource type="Texture2D" uid="uid://cf1o2a368vvu2" path="res://resources/player/chargingStart.png" id="2_n4uhu"]
 [ext_resource type="Texture2D" uid="uid://cb6a1p4erlden" path="res://resources/player/chargingReady.png" id="2_sc5de"]
+[ext_resource type="Texture2D" uid="uid://c42jp5aix021v" path="res://resources/player/dashEffect.png" id="5_6nclx"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_1hi3t"]
 animations = [{
@@ -34,6 +35,14 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": ExtResource("5_6nclx")
+}],
+"loop": true,
+"name": &"DashEffect",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": ExtResource("2_3nud4")
 }],
 "loop": true,
@@ -46,4 +55,4 @@ script = ExtResource("1_e156t")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_1hi3t")
-animation = &"ChargingMid"
+animation = &"DashEffect"

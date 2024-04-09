@@ -742,8 +742,34 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			}
 			
 
-			case (PLAYER_STATE_DASHINGGROUND):
+			case (PLAYER_STATE_DASHINGGROUND):{
+				
+				// If we are dashing, play the dashing animation
+				this.animatedSprite2D.Play("Dashing");
+				
+				break;
+			}
+			
 			case (PLAYER_STATE_DASHINGAIR): {
+				
+				Particle dashEffect = this.entityPooler.getParticle();
+
+
+				dashEffect.spawnOnTopOfMove(this.position, this.position, 3);
+
+			
+				// Change layer
+				dashEffect.ZIndex = 5;
+				dashEffect.animatedSprite2D.Play("DashEffect");
+				dashEffect.animatedSprite2D.FlipH = this.animatedSprite2D.FlipH;
+				
+				
+				// Also spawn Dasf Effect after images
+				Particle dashAfterImage = this.entityPooler.getParticle();
+				const int afterImageDuration = 30;
+				dashAfterImage.spawnStayMove(this.position, afterImageDuration);
+				dashEffect.animatedSprite2D.Play("DashEffect");
+				dashEffect.animatedSprite2D.FlipH = this.animatedSprite2D.FlipH;
 				
 				// If we are dashing, play the dashing animation
 				this.animatedSprite2D.Play("Dashing");
@@ -777,12 +803,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			
 			
 			Particle shotCharge = this.entityPooler.getParticle();
-			Vector2 nomove = new Vector2(0.0f, 0.0f);
-			shotCharge.spawn(this.position, nomove, 0.0f, 3);
 
-			
-			shotCharge.movementType = Particle.PARTICLE_MOVETYPE_ONTOPOF;		
-			shotCharge.parentPos = this.position;
+			shotCharge.spawnOnTopOfMove(this.position, this.position, 3);
+
 			
 			// Change layer
 			shotCharge.ZIndex = 5;
@@ -823,12 +846,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			// Add after image to level
 			//level.AddChild(afterImage);
 			
-			Vector2 nomove = new Vector2(0.0f, 0.0f);
+
 			const int afterImageDuration = 30;
-			afterImage.spawn(this.position, nomove, 0.0f, afterImageDuration);
+			afterImage.spawnStayMove(this.position, afterImageDuration);
 			//afterImage.spawn(GlobalPosition, nomove, 0.0f, 120);
 			
-			afterImage.movementType = Particle.PARTICLE_MOVETYPE_STAY;
 			
 			SpriteFrames newFrames = new SpriteFrames();
 			newFrames.AddAnimation("still");
@@ -887,6 +909,15 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			this.state = PLAYER_STATE_GROUNDED;
 			this.scalarSpeed = cWalkSpeed;
 			
+		}
+		
+		
+		if (Input.IsActionPressed("INPUT_SLOWDEBUG") == true) {
+			
+			Engine.PhysicsTicksPerSecond = 30;
+			
+		} else {
+			Engine.PhysicsTicksPerSecond = 120;
 		}
 		
 		

@@ -252,6 +252,8 @@ public partial class EntityPooler : Node
 	
 	public void freeParticle(int indexToFree) {
 		
+		// Set some members back to default
+		this.particlePool[indexToFree].animatedSprite2D.FlipH = false;
 		
 		this.particlePool[indexToFree].SetProcess(false);
 		this.particlePool[indexToFree].SetPhysicsProcess(false);

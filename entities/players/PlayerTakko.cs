@@ -250,49 +250,66 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	//! Megaman Z Styled movement
 	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool movement_takko_startDash(double delta) {
+	public void movement_takko_startGroundDash(double delta) {
 		
 		
-		// Just started dashing
-		if ((this.keystates & PLAYER_INPUTFLAG_DASH) == PLAYER_INPUTFLAG_DASH) {
-			
-			// And if we have stamina left
-			if (this.dashStaminaTimer > 0) {
-				
-				//!TODO: Move this test out of here?
-				// If we have enough air dashes, ground constantly resets them so no need
-				// for ground check
-				if (this.airDashesLeft > 0) {
-					
-					// We are now dashing
-					this.state = PLAYER_STATE_DASHING;		
-					this.flags = this.flags | PLAYER_BITFLAG_DASHING;
-					this.flags = this.flags | PLAYER_BITFLAG_GRAZING;
-					this.flags = this.flags | PLAYER_BITFLAG_CANCELING;
-					
-					
-					// Allow the player to do aerial attacks again
-					this.canDoBikeKick = true;
-					this.canDoHundredKicks = true;
-						
-					// Cancel push forces
-					this.pushForce.Y = 0;
-					this.pushForce.X = 0;
-					
-					return true;
-							
-				}
-						
-						
-						
-			}
-			
-			
-		}
+		// Just started ground dashing
 		
-		return false;
+		// Force dash repress for Dash jumping
+		this.actionRepressForcer = this.actionRepressForcer | PLAYER_INPUTFLAG_DASH;
+		
+		
+		// We are now dashing
+		this.state = PLAYER_STATE_DASHING;		
+		this.flags = this.flags | PLAYER_BITFLAG_DASHING;
+		this.flags = this.flags | PLAYER_BITFLAG_GRAZING;
+		this.flags = this.flags | PLAYER_BITFLAG_CANCELING;
+					
+	
+		// Cancel push forces
+		this.pushForce.Y = 0;
+		this.pushForce.X = 0;
+					
+
 		
 	}
+	
+	
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movement_takko_startAirDash(double delta) {
+		
+		
+		// Just started air dashing
+		
+		
+		// Don't allow to activate another dash unless player represses the button when Air Dashing
+		this.actionRepressForcer = this.actionRepressForcer | PLAYER_INPUTFLAG_DASH;
+		
+		// We are now dashing
+		this.state = PLAYER_STATE_DASHING;		
+		this.flags = this.flags | PLAYER_BITFLAG_DASHING;
+		this.flags = this.flags | PLAYER_BITFLAG_GRAZING;
+		this.flags = this.flags | PLAYER_BITFLAG_CANCELING;
+					
+					
+		// Allow the player to do aerial attacks again
+		this.canDoBikeKick = true;
+		this.canDoHundredKicks = true;
+						
+		// Cancel push forces
+		this.pushForce.Y = 0;
+		this.pushForce.X = 0;
+		
+		// Take away one airDash if we are in the air
+		this.airDashesLeft = this.airDashesLeft - 1;
+
+		
+	}
+	
+	
+	
 	
 	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -407,12 +424,15 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 				this.movementGeneral_calculateDirections(delta);
 				
-				bool startedGroundDashing = this.movement_takko_startDash(delta);
-				if (startedGroundDashing == true) {
-
+				// Start ground dash if Dash Input is down 
+				if ((this.keystates & PLAYER_INPUTFLAG_DASH) == PLAYER_INPUTFLAG_DASH) {
+				
+					this.movement_takko_startGroundDash(delta);
+				
 					// Begin the state of dashing in this tick
 					this.state = PLAYER_STATE_DASHINGGROUND;
 					goto case(PLAYER_STATE_DASHINGGROUND);
+					
 				}
 				
 				
@@ -451,13 +471,26 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
 				
 				
-				bool startedAirDashing = this.movement_takko_startDash(delta);
-				if (startedAirDashing == true) {
-					// Take away one airDash if we are in the air
-					this.airDashesLeft = this.airDashesLeft - 1;
-					// Begin the state of dashing in this tick
-					this.state = PLAYER_STATE_DASHINGAIR;
-					goto case(PLAYER_STATE_DASHINGAIR);
+				// When falling start dashing if player is holding Dash key
+				if ((this.keystates & PLAYER_INPUTFLAG_DASH) == PLAYER_INPUTFLAG_DASH) {
+					
+					// And if we have stamina left
+					if (this.dashStaminaTimer > 0) {
+							
+							// Can we air dash again?
+							if (this.airDashesLeft > 0) {
+					
+								this.movement_takko_startAirDash(delta);
+	
+
+								// Begin the state of dashing in this tick
+								this.state = PLAYER_STATE_DASHINGAIR;
+								goto case(PLAYER_STATE_DASHINGAIR);
+								
+							}
+							
+					}
+					
 				}
 				
 				
@@ -472,14 +505,28 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			
 			case (PLAYER_STATE_JUMPING): {
 				
-				bool startedAirDashing = this.movement_takko_startDash(delta);
-				if (startedAirDashing == true) {
-					// Take away one airDash if we are in the air
-					this.airDashesLeft = this.airDashesLeft - 1;
-					// Begin the state of dashing in this tick
-					this.state = PLAYER_STATE_DASHINGAIR;
-					goto case(PLAYER_STATE_DASHINGAIR);
+				
+				// Only start Dashing if the player has repressed it
+				if ((this.lookKeystates & PLAYER_INPUTFLAG_DASH) == PLAYER_INPUTFLAG_DASH) {
+					
+					// And if we have stamina left
+					if (this.dashStaminaTimer > 0) {
+							
+							// Can we air dash again?
+							if (this.airDashesLeft > 0) {
+								
+								this.movement_takko_startAirDash(delta);
+
+								// Begin the state of dashing in this tick
+								this.state = PLAYER_STATE_DASHINGAIR;
+								goto case(PLAYER_STATE_DASHINGAIR);
+							
+							}
+					
+					}
+				
 				}
+
 				
 				
 				this.movementGeneral_calculateDirections(delta);
@@ -527,6 +574,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 				bool bHasDashJumped = movement_takko_startDashJump(delta);
 				if (bHasDashJumped == true) {
+					
 					// Start handling jump on this tick
 					this.state = PLAYER_STATE_JUMPING;
 					goto case(PLAYER_STATE_JUMPING);

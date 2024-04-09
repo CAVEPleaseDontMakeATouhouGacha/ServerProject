@@ -371,6 +371,13 @@ public partial class PlatformerPlayerBase : Node2D
 			this.actionRepressForcer = this.actionRepressForcer & ~PLAYER_INPUTFLAG_JUMP;
 		}
 		
+		// If player has stopped holding Dash
+		if ((this.keystates & PLAYER_INPUTFLAG_DASH) != PLAYER_INPUTFLAG_DASH) {
+			// Stop Dash repress forcer
+			this.actionRepressForcer = this.actionRepressForcer & ~PLAYER_INPUTFLAG_DASH;
+		}
+		
+		
 		// Force the player to repress action keys if the forcer is 1 in one of the input flags
 		this.lookKeystates = this.lookKeystates ^ this.actionRepressForcer;
 		

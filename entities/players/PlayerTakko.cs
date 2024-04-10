@@ -766,10 +766,10 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				
 				// Also spawn Dasf Effect after images
 				Particle dashAfterImage = this.entityPooler.getParticle();
-				const int afterImageDuration = 30;
-				dashAfterImage.spawnStayMove(this.position, afterImageDuration);
-				dashEffect.animatedSprite2D.Play("DashEffect");
-				dashEffect.animatedSprite2D.FlipH = this.animatedSprite2D.FlipH;
+				const int dashAfterImageDuration = 15;
+				dashAfterImage.spawnStayMove(this.position, dashAfterImageDuration);
+				dashAfterImage.animatedSprite2D.Play("DashEffect");
+				dashAfterImage.animatedSprite2D.FlipH = this.animatedSprite2D.FlipH;
 				
 				// If we are dashing, play the dashing animation
 				this.animatedSprite2D.Play("Dashing");

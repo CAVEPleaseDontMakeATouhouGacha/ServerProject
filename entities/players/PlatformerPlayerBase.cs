@@ -360,8 +360,9 @@ public partial class PlatformerPlayerBase : Node2D
 		}
 		*/
 		
-		//! OPTIMIZE: There has to be a better way to do this... and no I'm not talking about clearing the bitflag
+		
 		// Force repressing key but still hold it
+		//! OPTIMIZE: There has to be a better way to do this... and no I'm not talking about clearing the bitflag
 		
 		int repressActions = this.keystates & PLAYER_INPUTFLAG_ACTIONS;
 		
@@ -401,11 +402,11 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void movementGeneral_readGlobalPosition(double delta) {
+	public void movementGeneral_readGlobalPositionAndRecordPrevious(double delta) {
 	
 		// Grab Global Position
 		this.position = this.GlobalPosition;
-		// Record previous position
+		// Record previous position before updating it
 		this.prevPosition = this.position;
 	}
 	
@@ -731,9 +732,12 @@ public partial class PlatformerPlayerBase : Node2D
 	// A line check with the tile map
 	// Returns the first found tile data on the line path
 	// It uses the Bresenham line algorithm of course
-	public TileData tileCollision_line(int lineStartPosX, int lineStartPosY, 
-									   int lineEndPosX, int lineEndPosY) {
+	public TileCollisionResponse tileCollision_line(int lineStartPosX, int lineStartPosY, 
+									   				int lineEndPosX, int lineEndPosY) {
 		
+		
+		
+		TileCollisionResponse tileResponse = new TileCollisionResponse();
 		
 		// The steep value, since we cannot move sub tiles we build up a steep value until it's
 		// big enough to go to the next tile
@@ -815,6 +819,9 @@ public partial class PlatformerPlayerBase : Node2D
 				Vector2I tilePos = new Vector2I(posY, posX);
 				tile = tilemap.GetCellTileData(0, tilePos);
 				
+				// Record position of where we found the tile reversed
+				tileResponse.tileTopPosX = posY;
+				tileResponse.tileTopPosY = posX;
 				
 			} else {
 				
@@ -825,6 +832,10 @@ public partial class PlatformerPlayerBase : Node2D
 				Vector2I tilePos = new Vector2I(posX, posY);
 				tile = tilemap.GetCellTileData(0, tilePos);
 				
+				// Record position of where we found the tile
+				tileResponse.tileTopPosX = posX;
+				tileResponse.tileTopPosY = posY;
+				
 				
 			}
 			
@@ -834,7 +845,8 @@ public partial class PlatformerPlayerBase : Node2D
 					
 				if(tile.Terrain != TILETYPE_EMPTY) {
 					// We found a possible tile
-					return tile;
+					tileResponse.tileData = tile;
+					return tileResponse;
 				}
 					
 			}

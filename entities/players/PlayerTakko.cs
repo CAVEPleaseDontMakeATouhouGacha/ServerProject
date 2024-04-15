@@ -68,6 +68,24 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	//! Melee functions
 	//======================
 	
+	
+	public void melee_startSlam(double delta) {
+		
+		// Only do a slam if we are in the air
+		
+		// Cancel out of dashing
+		this.flags = this.flags & ~PLAYER_BITFLAG_DASHING;
+					
+		// Do a slam
+		// Add donwards velocity
+		this.velocity.Y = this.velocity.Y + 15.0f; 
+					
+		
+		
+		
+	}
+	
+	
 	public void melee_takko(double delta) {
 		
 		
@@ -413,7 +431,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	
 	
 	
-	public void movement_takko(double delta) {
+	public void logicUpdate_takko(double delta) {
 		
 	
 
@@ -464,6 +482,23 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			}
 			
 			case (PLAYER_STATE_AIRBORNE): {
+				
+				/*
+				if ((this.lookKeystates & PLAYER_INPUTFLAG_MELEE) == PLAYER_INPUTFLAG_MELEE) {
+					
+					// Perform slam
+					// If player is holding down
+					if ((this.keystates & PLAYER_INPUTFLAG_DOWN) == PLAYER_INPUTFLAG_DOWN) {
+						
+						this.melee_startSlam(delta);
+						//!TODO: Go to attack state?	
+						
+					}
+					
+				}
+				*/
+				
+				
 				
 				this.movementGeneral_calculateDirections(delta);
 				
@@ -650,22 +685,105 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		};
 		
 		
-		int lineStartPosY = (int)this.prevPosition.Y;
-		int lineEndPosY = (int)this.position.Y;
-		int lineStartPosX = (int)this.prevPosition.X;
-		int lineEndPosX= (int)this.position.X;
+		// Tile Collision 
+		// Uses lines to be sure there is not tunelling
+		
+		float lineStartPosYPrecise = this.prevPosition.Y;
+		float lineEndPosYPrecise = this.position.Y;
+		float lineStartPosXPrecise = this.prevPosition.X;
+		float lineEndPosXPrecise = this.position.X;
+		
+
+		
+		// X axis collision
+		// Extend lines horizontally based on the player width
+		float lineEndPosXPreciseExtended = lineEndPosXPrecise + this.rectWidth;
 		
 		
-		tileCollision_lineY(lineStartPosY, lineEndPosY, lineStartPosX);
 		
 		
-		if (this.position.Y > 900) {
+		
+		float horiSensorYOffset = this.rectHeight / 4;
+		
+		// The horizontal tile sensor are the edges of the hitbox
+		// Set up the various horizontal sensors origins
+		float horiSensorTopPosY = lineStartPosYPrecise - this.rectHeight;
+		float horiSensorUpPosY = lineStartPosYPrecise - horiSensorYOffset;
+		float horiSensorMidPosY = lineStartPosYPrecise;
+		float horiSensorDownPosY = lineStartPosYPrecise + horiSensorYOffset;
+		float horiSensorBottomPosY = lineStartPosYPrecise + this.rectHeight;
+		
+		
+				
+		// Y axis collision
+		
+		// Extend lines vertically based on the player height
+		float lineEndPosYPreciseExtended = lineEndPosYPrecise + this.rectHeight;
+		
+		// The vertical tile sensor are the edges of the hitbox
+		float verticalSensorXOffset = this.rectWidth;
+		
+		// Set up the various vertical sensors origins
+		float verticalSensorLeftPosX = lineStartPosXPrecise - verticalSensorXOffset;
+		// The sensor B is the middle of the player
+		float verticalSensorMidPosX = lineStartPosXPrecise;
+		float verticalSensorRightPosX = lineStartPosXPrecise + verticalSensorXOffset;
+		
+		
+		int intStartLineY = (int)lineStartPosYPrecise;
+		int intStartLineX = (int)verticalSensorMidPosX;
+		int intEndLineY = (int)lineEndPosYPreciseExtended;
+		int intEndLineX = (int)lineEndPosXPrecise;
+		
+		
+		// Cnvert to tile units
+		intStartLineY = intStartLineY >> 5;
+		intStartLineX = intStartLineX >> 5;
+		intEndLineY = intEndLineY >> 5;
+		intEndLineX = intEndLineX >> 5;
+		
+		
+		TileCollisionResponse midSensorResponse =  tileCollision_line(intStartLineX, intStartLineY,
+													 				  intEndLineX, intEndLineY);
+		
+		
+			
+			
+		
+		
+		// Do 3 line checks
+		
+		/*
+		DrawLine(new Vector2(lineStartPosXPrecise, lineStartPosYPrecise), 
+				  new Vector2(lineEndPosXPrecise, lineEndPosYPrecise), Colors.Green, 1.0f);
+		
+		DrawLine(new Vector2(lineStartPosXPrecise, lineStartPosYPrecise), 
+				  new Vector2(lineEndPosXPreciseExtended, lineEndPosYPrecise), Colors.Green, 1.0f);
+		
+		DrawLine(new Vector2(lineStartPosXPrecise, lineStartPosYPrecise), 
+				  new Vector2(lineEndPosXPrecise, lineEndPosYPreciseExtended), Colors.Blue, 1.0f);
+		*/
+		
+		//! DEPRECATED
+		//tileCollision_lineY(lineStartPosY, lineEndPosY, lineStartPosX);
+		
+		if (midSensorResponse != null){
+		//if (this.position.Y > 900) {
+			
+			GD.Print("Tile collision");
 			
 			//this.position.Y = (float)bOnGround;
-			this.position.Y = 900;
+			//this.position.Y = 850;
+			this.position.Y = (float)(midSensorResponse.tileTopPosY << 5) - this.rectHeight;
+			
 			
 			// If we are not dashing on the ground
-			if (this.state != PLAYER_STATE_DASHINGGROUND) {
+			if (this.state == PLAYER_STATE_DASHINGGROUND) {
+				
+				// Keep state
+				this.state = PLAYER_STATE_DASHINGGROUND;
+				
+			} else {
 				
 				// We are now on ground
 				this.state = PLAYER_STATE_GROUNDED;
@@ -879,7 +997,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		// Grab Global Position
 		this.position = this.GlobalPosition;
-		// Record previous position
+		// Record previous position before updating it
 		this.prevPosition = this.position;
 		
 		
@@ -887,10 +1005,11 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		this.buildKeystates();
 		
 		// Melee combat code
-		this.melee_takko(delta);
+		//this.melee_takko(delta);
 		
-		// Run movement code
-		this.movement_takko(delta);
+		// Run all Takko logic code,
+		// this includes movement code, melee, and shooting if necessary
+		this.logicUpdate_takko(delta);
 		
 		//! Handle bullets
 		// Graze bullets that are grazeable and cancel those that are cancelable

@@ -5,6 +5,10 @@ public partial class EntityPooler : Node
 {
 	
 	
+	// This value represents that the entity is pointing to nothing
+	// Unlikely we will ever need THAT many enities in one pool...
+	public const int ENTITYPOOLER_EMPTYVALUE = 0xDEAD;
+	
 	// Performance note
 	// https://web.archive.org/web/20100709213139/http://www.vistadb.net/blog/post/2008/07/18/Strongly-type-everything!.aspx
 	// https://web.archive.org/web/20101124023832/http://www.vistadb.net/blog/post/2008/08/15/Class-v-Struct.aspx
@@ -144,6 +148,9 @@ public partial class EntityPooler : Node
 			
 		} while (currParticle < particlePoolSize);
 		
+		// Go back to the last particle and set it as pointing to null
+		int lastValid = currParticle = currParticle - 1;
+		this.particlePool[lastValid].nextFree = ENTITYPOOLER_EMPTYVALUE;
 		
 		this.nextFreeParticle = 0;
 		
@@ -208,9 +215,16 @@ public partial class EntityPooler : Node
 	
 	public Particle getParticle() {
 		
-		Particle newParticle = this.particlePool[nextFreeParticle];
 		
-		nextFreeParticle = newParticle.nextFree;
+		if (this.nextFreeParticle == ENTITYPOOLER_EMPTYVALUE) {
+			
+			GD.Print("Reached max particle");
+			
+		}
+		
+		Particle newParticle = this.particlePool[this.nextFreeParticle];
+		
+		this.nextFreeParticle = newParticle.nextFree;
 		
 		newParticle.SetProcess(true);
 		newParticle.SetPhysicsProcess(true);
@@ -221,9 +235,9 @@ public partial class EntityPooler : Node
 	
 	public Shot getShot() {
 		
-		Shot newShot = this.shotPool[nextFreeShot];
+		Shot newShot = this.shotPool[this.nextFreeShot];
 		
-		nextFreeShot = newShot.nextFree;
+		this.nextFreeShot = newShot.nextFree;
 		
 		newShot.SetProcess(true);
 		newShot.SetPhysicsProcess(true);
@@ -235,9 +249,9 @@ public partial class EntityPooler : Node
 	
 	public Bullet getBullet() {
 		
-		Bullet newBullet = this.bulletPool[nextFreeBullet];
+		Bullet newBullet = this.bulletPool[this.nextFreeBullet];
 		
-		nextFreeBullet = newBullet.nextFree;
+		this.nextFreeBullet = newBullet.nextFree;
 		
 		newBullet.SetProcess(true);
 		//newBullet.Visible = true;
@@ -294,11 +308,69 @@ public partial class EntityPooler : Node
 	
 	
 	//======================
-	//! ECL wannabe lmao
+	//! ECL V2 wannabe lmao
 	//======================
 	
 	// Might be getting a bit carried away...
 	
+	
+	
+	//! Constants
+	
+	
+	//!ZUNBloat: Why is this not a flag lmao
+	// Shoot a fan pattern aimed at the player
+	public const int ECL_AIMMODE_FAN_AIMED = 0;
+	// Shoot a fan pattern with a certain angle 
+	public const int ECL_AIMMODE_FAN_ANGLE = 1;
+	
+	// Two ring modes that work very similarly 
+	// A ring aimed at the player
+	public const int ECL_AIMMODE_RING_AIM = 2;
+	public const int ECL_AIMMODE_RING_STATIC = 3;
+	
+	// Always aim away from the player whether odd or even
+	public const int ECL_AIMMODE_RING_AIMAWAY = 4;
+	// The odd version of aim mode 3 (RING_ANGLE), every angle 3 would not have a bullet
+	// this one does
+	public const int ECL_AIMMODE_RING_LOVESMENOT = 5;
+	
+	
+	public const int ECL_AIMMODE_RAND_AIMEDFAN = 6;
+	public const int ECL_AIMMODE_RAND_STATICRING = 7;
+	// Eternal Meek
+	public const int ECL_AIMMODE_RAND_MEEK = 8;
+	
+	
+	//! Members
+	
+	// The aim mode of the pattern
+	public int aimMode;
+	
+	// While these two are commonly used as layer and column count respectively
+	// it can change depending on pattern 
+	public int patternLayerNum;
+	public int patternColumnNum;
+	
+	// Commonly used for max speed and min speed
+	public float patternMaxSpeed;
+	public float patternMinSpeed;
+	
+	
+	public float patternMainAngle;
+	public float patternSeparationAngle;
+	
+	
+	// 600 Series
+	
+	//ins_600 (etSet) - Useless in our case?
+	
+	//ins_601 (etOn)
+	public void shootPattern() {
+		
+		
+		
+	}
 	
 	
 }

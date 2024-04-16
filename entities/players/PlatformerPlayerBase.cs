@@ -784,7 +784,7 @@ public partial class PlatformerPlayerBase : Node2D
 		// Not as important as X axis since Y is worked as a secondary axis we change when error accumulator
 		// becomes too big
 		// The distance we have to traverse on the Y axis until we complete the line detection
-		int deltaY = Math.Abs(lineEndPosY - lineEndPosY);
+		int deltaY = Math.Abs(lineEndPosY - lineStartPosY);
 		
 		// The step amount in the Y axis
 		int stepY;

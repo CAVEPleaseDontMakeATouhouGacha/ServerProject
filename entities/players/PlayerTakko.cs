@@ -260,6 +260,102 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	}
 	
 	
+	
+	//======================
+	//! Tile collision functions
+	//======================
+	
+	
+	public void tileCollision_takko_response() {
+		
+		// X Response to colliding with something
+		
+		
+		
+		// Y Response to colliding with something
+		
+		
+		
+	}
+	
+	
+	public void tileCollision_takko() {
+		
+		
+		// Tile Collision 
+		// Uses lines to be sure there is not tunelling
+		
+		float lineStartPosYPrecise = this.prevPosition.Y;
+		float lineEndPosYPrecise = this.position.Y;
+		float lineStartPosXPrecise = this.prevPosition.X;
+		float lineEndPosXPrecise = this.position.X;
+		
+
+		
+		// X axis collision
+		// Extend lines horizontally based on the player width
+		float lineEndPosXPreciseExtended = lineEndPosXPrecise + this.rectWidth;
+		
+		
+		
+		
+		
+		float horiSensorYOffset = this.rectHeight / 4;
+		
+		// The horizontal tile sensor are the edges of the hitbox
+		// Set up the various horizontal sensors origins
+		float horiSensorTopPosY = lineStartPosYPrecise - this.rectHeight;
+		float horiSensorUpPosY = lineStartPosYPrecise - horiSensorYOffset;
+		float horiSensorMidPosY = lineStartPosYPrecise;
+		float horiSensorDownPosY = lineStartPosYPrecise + horiSensorYOffset;
+		float horiSensorBottomPosY = lineStartPosYPrecise + this.rectHeight;
+		
+		
+				
+		// Y axis collision
+		
+		// Extend lines vertically based on the player height
+		float lineEndPosYPreciseExtended = lineEndPosYPrecise + this.rectHeight;
+		
+		// The vertical tile sensor are the edges of the hitbox
+		float verticalSensorXOffset = this.rectWidth;
+		
+		// Set up the various vertical sensors origins
+		float verticalSensorLeftPosX = lineStartPosXPrecise - verticalSensorXOffset;
+		// The sensor B is the middle of the player
+		float verticalSensorMidPosX = lineStartPosXPrecise;
+		float verticalSensorRightPosX = lineStartPosXPrecise + verticalSensorXOffset;
+		
+		
+		int intStartLineY = (int)lineStartPosYPrecise;
+		int intStartLineX = (int)verticalSensorMidPosX;
+		int intEndLineY = (int)lineEndPosYPreciseExtended;
+		int intEndLineX = (int)lineEndPosXPrecise;
+		
+		
+		// Convert to tile units
+		intStartLineY = intStartLineY >> 5;
+		intStartLineX = intStartLineX >> 5;
+		intEndLineY = intEndLineY >> 5;
+		intEndLineX = intEndLineX >> 5;
+		
+		
+		
+		TileCollisionResponse leftSensorResponse =  tileCollision_line(intStartLineX, intStartLineY,
+													 				  intEndLineX, intEndLineY);
+		
+		
+		TileCollisionResponse midSensorResponse =  tileCollision_line(intStartLineX, intStartLineY,
+													 				  intEndLineX, intEndLineY);
+		
+		TileCollisionResponse rightSensorResponse =  tileCollision_line(intStartLineX, intStartLineY,
+													 				  intEndLineX, intEndLineY);
+		
+		
+		
+	}
+	
+	
 	//======================
 	//! Movement Functions
 	//======================
@@ -498,7 +594,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				}
 				*/
 				
-				
+				//! MAYBE: If we wanted to implement coyote time all we need to do is use a timer here
+				// and check if the input is within that time, of course as long as the timer is set on the tile collision function
 				
 				this.movementGeneral_calculateDirections(delta);
 				
@@ -693,14 +790,55 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		float lineStartPosXPrecise = this.prevPosition.X;
 		float lineEndPosXPrecise = this.position.X;
 		
-
 		
-		// X axis collision
+		// Extend on the Y and X axis to account for the hitbox
+		
 		// Extend lines horizontally based on the player width
-		float lineEndPosXPreciseExtended = lineEndPosXPrecise + this.rectWidth;
+		float lineEndPosXPreciseExtended = lineEndPosXPrecise;
+		// If moving to the left, extend to the left
+		if (this.velocity.X < 0.0f) {
+			lineEndPosXPreciseExtended = lineEndPosXPreciseExtended - this.rectWidth;
+		} else if (this.velocity.X > 0.0f) {
+			lineEndPosXPreciseExtended = lineEndPosXPreciseExtended + this.rectWidth;
+		}
+		// Don't extend
+		
+		
+		// Extend lines vertically based on the player height
+		float lineEndPosYPreciseExtended = lineEndPosYPrecise;
+		// If moving going up, extend upwards
+		if (this.velocity.Y < 0.0f) {
+			lineEndPosYPreciseExtended = lineEndPosYPreciseExtended - this.rectHeight;
+		} else if (this.velocity.Y > 0.0f) {
+			lineEndPosYPreciseExtended = lineEndPosYPreciseExtended + this.rectHeight;
+		} else {
+			// Default to extending downwards
+			//lineEndPosYPreciseExtended = lineEndPosYPreciseExtended + this.rectHeight;
+		}
+		
+		// General use line variables
+		// Convert to int
+		int intStartLineY = (int)lineStartPosYPrecise;
+		int intStartLineX = (int)lineStartPosXPrecise;
+		int intEndLineY = (int)lineEndPosYPrecise;
+		int intEndLineX = (int)lineEndPosXPrecise;
+		
+		int intEndLineYExtended = (int)lineEndPosYPreciseExtended;
+		int intEndLineXExtended = (int)lineEndPosXPreciseExtended;
+		
+		
+		// Convert to tile units
+		intStartLineY = intStartLineY >> 5;
+		intStartLineX = intStartLineX >> 5;
+		intEndLineY = intEndLineY >> 5;
+		intEndLineX = intEndLineX >> 5;
+		
+		intEndLineYExtended = intEndLineYExtended >> 5;
+		intEndLineXExtended = intEndLineXExtended >> 5;
 		
 		
 		
+		// X Tile Grabbing
 		
 		
 		float horiSensorYOffset = this.rectHeight / 4;
@@ -714,11 +852,23 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		float horiSensorBottomPosY = lineStartPosYPrecise + this.rectHeight;
 		
 		
+		// Grab all possible tiles on the X axis
+		TileCollisionResponse horiMidSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
+													 					 intEndLineXExtended, intEndLineY);
+		
+		
+		
+		//!TODO: Pick one
+		
+		
+		
+		TileCollisionResponse closestXTileResponse = horiMidSensorResponse;
+		
+		
 				
 		// Y axis collision
 		
-		// Extend lines vertically based on the player height
-		float lineEndPosYPreciseExtended = lineEndPosYPrecise + this.rectHeight;
+		
 		
 		// The vertical tile sensor are the edges of the hitbox
 		float verticalSensorXOffset = this.rectWidth;
@@ -730,51 +880,131 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		float verticalSensorRightPosX = lineStartPosXPrecise + verticalSensorXOffset;
 		
 		
-		int intStartLineY = (int)lineStartPosYPrecise;
-		int intStartLineX = (int)verticalSensorMidPosX;
-		int intEndLineY = (int)lineEndPosYPreciseExtended;
-		int intEndLineX = (int)lineEndPosXPrecise;
+		
+		// Specific to this one
+		
+		int intStartLineXLeft = (int)verticalSensorLeftPosX;
+		int intStartLineXRight = (int)verticalSensorRightPosX;
 		
 		
-		// Cnvert to tile units
-		intStartLineY = intStartLineY >> 5;
-		intStartLineX = intStartLineX >> 5;
-		intEndLineY = intEndLineY >> 5;
-		intEndLineX = intEndLineX >> 5;
+		
+		intStartLineXLeft = intStartLineXLeft >> 5;
+		intStartLineXRight = intStartLineXRight >> 5;
 		
 		
-		TileCollisionResponse midSensorResponse =  tileCollision_line(intStartLineX, intStartLineY,
-													 				  intEndLineX, intEndLineY);
+		TileCollisionResponse vertLeftSensorResponse = tileCollision_line(intStartLineXLeft, intStartLineY,
+													 					  intEndLineX, intEndLineYExtended);
 		
 		
+		TileCollisionResponse vertMidSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
+													 					 intEndLineX, intEndLineYExtended);
+		
+		TileCollisionResponse vertRightSensorResponse = tileCollision_line(intStartLineXRight, intStartLineY,
+													 					   intEndLineX, intEndLineYExtended);
 			
-			
+		
+		// Between these 3 checks now choose which one we want to pick based on distance
+		// if the distance is the same they take precedence depending on the order and direction of movement
+		
+		int vertDistanceLeft = 2000000000;
+		int vertDistanceMid = 2000000000;
+		int vertDistanceRight = 2000000000;
+		
+		if (vertLeftSensorResponse != null) {
+			vertDistanceLeft = intStartLineY - vertLeftSensorResponse.tileTopPosY;
+		}
+		if (vertMidSensorResponse != null) {
+			vertDistanceMid = intStartLineY - vertMidSensorResponse.tileTopPosY;
+		}
+		if (vertRightSensorResponse != null) {
+			vertDistanceRight = intStartLineY - vertRightSensorResponse.tileTopPosY;
+		}
+		
+
 		
 		
-		// Do 3 line checks
+		// If moving to the left the right one takes precedence and the contrary is true
+		TileCollisionResponse closestYTileResponse = vertMidSensorResponse;
+		if(this.velocity.X < 0.0f) {
+			closestYTileResponse = vertRightSensorResponse;
+		} else if (this.velocity.X > 0.0f) {
+			closestYTileResponse = vertLeftSensorResponse;
+		} 
 		
-		/*
-		DrawLine(new Vector2(lineStartPosXPrecise, lineStartPosYPrecise), 
-				  new Vector2(lineEndPosXPrecise, lineEndPosYPrecise), Colors.Green, 1.0f);
+	
+		TileCollisionResponse tempY = vertMidSensorResponse;
+		int tempDistY = vertDistanceMid;
+		if (vertDistanceLeft < vertDistanceMid) {
+			tempY = vertLeftSensorResponse;
+			tempDistY = vertDistanceMid;
+		} 
+		if (vertDistanceRight < tempDistY) {
+			tempY = vertRightSensorResponse;
+		}
+		closestYTileResponse = tempY;
 		
-		DrawLine(new Vector2(lineStartPosXPrecise, lineStartPosYPrecise), 
-				  new Vector2(lineEndPosXPreciseExtended, lineEndPosYPrecise), Colors.Green, 1.0f);
 		
-		DrawLine(new Vector2(lineStartPosXPrecise, lineStartPosYPrecise), 
-				  new Vector2(lineEndPosXPrecise, lineEndPosYPreciseExtended), Colors.Blue, 1.0f);
-		*/
+		
+		
 		
 		//! DEPRECATED
 		//tileCollision_lineY(lineStartPosY, lineEndPosY, lineStartPosX);
 		
-		if (midSensorResponse != null){
-		//if (this.position.Y > 900) {
+		
+		
+		//! X Collision Response
+		if (closestXTileResponse != null) {
 			
-			GD.Print("Tile collision");
+			// Only push the player out if the tile is in the center of the hitbox
 			
-			//this.position.Y = (float)bOnGround;
-			//this.position.Y = 850;
-			this.position.Y = (float)(midSensorResponse.tileTopPosY << 5) - this.rectHeight;
+			int tileDistance = intStartLineY - closestXTileResponse.tileTopPosY;
+			//GD.Print("CLosestXTilePos Y:" + (closestXTileResponse.tileTopPosY << 5) + " X:" + (closestXTileResponse.tileTopPosX << 5));
+			//GD.Print("Distance " + distance + "startlinePos " + intStartLineY);
+			if (Math.Abs(tileDistance) < 1) {
+				
+				// If we are moving to the left
+				if (this.velocity.X < 0.0f) {
+				
+					// We have found a wall on our left
+					this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) + this.rectWidth + 32.0f;
+				
+				} else if (this.velocity.X > 0.0f) {
+				
+					// We have found a wall on our right
+					this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) - this.rectWidth;
+				
+				}
+				
+				
+			}
+			
+			
+			
+			
+		}
+		
+		
+		//! Y Collision Response
+		
+		// If there is no tile
+		if (closestYTileResponse == null) {
+			
+			// And if we are on the ground
+			if (this.state == PLAYER_STATE_GROUNDED) {
+				
+				// That means we should be falling then goober
+				this.state = PLAYER_STATE_AIRBORNE;
+			}
+			
+		} else {
+			
+			// If there was a tile found... 
+			
+			// If we are moving down put us on the top of the tile
+			if (this.velocity.Y > 0.0f) {
+				this.position.Y = (float)(closestYTileResponse.tileTopPosY << 5) - this.rectHeight;
+			}
+			
 			
 			
 			// If we are not dashing on the ground
@@ -811,7 +1041,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			
 		}
 		
-		
+	
 		
 	}
 	

@@ -33,3 +33,5 @@ script = ExtResource("2_1njkj")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="PlayerTakko"]
 sprite_frames = SubResource("SpriteFrames_od5w7")
 animation = &"Dashing"
+
+[node name="Camera2D" type="Camera2D" parent="PlayerTakko"]

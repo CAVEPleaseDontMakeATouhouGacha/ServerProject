@@ -356,6 +356,28 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	}
 	
 	
+	
+	public void interaction_takko_startGrounded() {
+		
+		// Reset vertical momentum
+		this.velocity.Y = 0.0f;
+				
+		// Reset jumps
+		this.jumpsLeft = cMaxJumps;
+				
+		// Reset dash
+		this.dashStaminaTimer = cDashDurationTimeLength;
+		this.scalarSpeed = cWalkSpeed;
+		this.airDashesLeft = cMaxAerialDashes;
+				
+				
+		// Allow the player to do aerial attacks again
+		this.canDoBikeKick = true;
+		this.canDoHundredKicks = true;
+		
+	}
+	
+	
 	//======================
 	//! Movement Functions
 	//======================
@@ -801,19 +823,21 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		} else if (this.velocity.X > 0.0f) {
 			lineEndPosXPreciseExtended = lineEndPosXPreciseExtended + this.rectWidth;
 		}
-		// Don't extend
+		// Don't extend or extend to the direction we are looking
 		
-		
+		//!OPTIMISE: Remove that else if
 		// Extend lines vertically based on the player height
 		float lineEndPosYPreciseExtended = lineEndPosYPrecise;
 		// If moving going up, extend upwards
 		if (this.velocity.Y < 0.0f) {
 			lineEndPosYPreciseExtended = lineEndPosYPreciseExtended - this.rectHeight;
 		} else if (this.velocity.Y > 0.0f) {
+			// Default to extending downwards
 			lineEndPosYPreciseExtended = lineEndPosYPreciseExtended + this.rectHeight;
 		} else {
+			//!MAYBE: When not moving just sense the feet?
 			// Default to extending downwards
-			//lineEndPosYPreciseExtended = lineEndPosYPreciseExtended + this.rectHeight;
+			lineEndPosYPreciseExtended = lineEndPosYPreciseExtended + this.rectHeight;
 		}
 		
 		// General use line variables
@@ -873,10 +897,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// The vertical tile sensor are the edges of the hitbox
 		float verticalSensorXOffset = this.rectWidth;
 		
+		
 		// Set up the various vertical sensors origins
 		float verticalSensorLeftPosX = lineStartPosXPrecise - verticalSensorXOffset;
-		// The sensor B is the middle of the player
-		float verticalSensorMidPosX = lineStartPosXPrecise;
 		float verticalSensorRightPosX = lineStartPosXPrecise + verticalSensorXOffset;
 		
 		
@@ -910,6 +933,17 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		int vertDistanceMid = 2000000000;
 		int vertDistanceRight = 2000000000;
 		
+		
+		if (vertLeftSensorResponse == null) {
+			GD.Print("Left is null");
+		}
+		if (vertMidSensorResponse == null) {
+			GD.Print("Mid is null");
+		}
+		if (vertRightSensorResponse == null) {
+			GD.Print("Right is null");
+		}
+		
 		if (vertLeftSensorResponse != null) {
 			vertDistanceLeft = intStartLineY - vertLeftSensorResponse.tileTopPosY;
 		}
@@ -920,18 +954,23 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			vertDistanceRight = intStartLineY - vertRightSensorResponse.tileTopPosY;
 		}
 		
-
+		
+		GD.Print("Distance Left " + vertDistanceLeft);
+		GD.Print("Distance Mid " + vertDistanceMid);
+		GD.Print("Distance Right " + vertDistanceRight);
+		
+		TileCollisionResponse closestYTileResponse = null;
 		
 		
 		// If moving to the left the right one takes precedence and the contrary is true
-		TileCollisionResponse closestYTileResponse = vertMidSensorResponse;
+		closestYTileResponse = vertMidSensorResponse;
 		if(this.velocity.X < 0.0f) {
 			closestYTileResponse = vertRightSensorResponse;
 		} else if (this.velocity.X > 0.0f) {
 			closestYTileResponse = vertLeftSensorResponse;
 		} 
 		
-	
+		/*
 		TileCollisionResponse tempY = vertMidSensorResponse;
 		int tempDistY = vertDistanceMid;
 		if (vertDistanceLeft < vertDistanceMid) {
@@ -942,7 +981,19 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			tempY = vertRightSensorResponse;
 		}
 		closestYTileResponse = tempY;
+		*/
 		
+	
+		if (vertDistanceLeft < vertDistanceMid && vertDistanceLeft < vertDistanceRight) {
+			closestYTileResponse = vertLeftSensorResponse;
+			GD.Print("Left Sensor was choosen");
+		} else if (vertDistanceMid < vertDistanceLeft && vertDistanceMid < vertDistanceRight) {
+			closestYTileResponse = vertMidSensorResponse;
+			GD.Print("Mid Sensor was choosen");
+		} else if (vertDistanceRight < vertDistanceLeft && vertDistanceRight < vertDistanceMid){
+			closestYTileResponse = vertRightSensorResponse;
+			GD.Print("Right Sensor was choosen");
+		}
 		
 		
 		
@@ -1003,41 +1054,34 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			// If we are moving down put us on the top of the tile
 			if (this.velocity.Y > 0.0f) {
 				this.position.Y = (float)(closestYTileResponse.tileTopPosY << 5) - this.rectHeight;
+				
+				// If we are not dashing on the ground
+				if (this.state == PLAYER_STATE_DASHINGGROUND) {
+				
+					// Keep state
+					this.state = PLAYER_STATE_DASHINGGROUND;
+				
+				} else {
+					
+					// We are now on ground
+					this.state = PLAYER_STATE_GROUNDED;
+					
+				}
+				
+				this.interaction_takko_startGrounded();
+				
+			}
+			
+			// If we are moving up treat it as a ceiling (unless it's passthrough)
+			if (this.velocity.Y < 0.0f) {
+				this.position.Y = (float)(closestYTileResponse.tileTopPosY << 5) + 32.0f + this.rectHeight;
+				// Cancel Y velocity
+				this.velocity.Y = 0.0f;
+				// Don't change state
 			}
 			
 			
-			
-			// If we are not dashing on the ground
-			if (this.state == PLAYER_STATE_DASHINGGROUND) {
-				
-				// Keep state
-				this.state = PLAYER_STATE_DASHINGGROUND;
-				
-			} else {
-				
-				// We are now on ground
-				this.state = PLAYER_STATE_GROUNDED;
-				
-			}
-			
-			
-			
-			// Reset vertical momentum
-			this.velocity.Y = 0.0f;
-			
-			// Reset jumps
-			this.jumpsLeft = cMaxJumps;
-			
-			// Reset dash
-			this.dashStaminaTimer = cDashDurationTimeLength;
-			this.scalarSpeed = cWalkSpeed;
-			this.airDashesLeft = cMaxAerialDashes;
-			
-			
-			// Allow the player to do aerial attacks again
-			this.canDoBikeKick = true;
-			this.canDoHundredKicks = true;
-			
+
 			
 		}
 		

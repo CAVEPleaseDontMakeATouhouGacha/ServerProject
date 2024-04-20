@@ -896,11 +896,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		// The vertical tile sensor are the edges of the hitbox
 		float verticalSensorXOffset = this.rectWidth;
-		
+		//float verticalSensorXOffset = 32.0f;
 		
 		// Set up the various vertical sensors origins
 		float verticalSensorLeftPosX = lineStartPosXPrecise - verticalSensorXOffset;
 		float verticalSensorRightPosX = lineStartPosXPrecise + verticalSensorXOffset;
+		float verticalSensorLeftPosXEnd = lineEndPosXPrecise - verticalSensorXOffset;
+		float verticalSensorRightPosXEnd = lineEndPosXPrecise + verticalSensorXOffset;
 		
 		
 		
@@ -908,23 +910,49 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		int intStartLineXLeft = (int)verticalSensorLeftPosX;
 		int intStartLineXRight = (int)verticalSensorRightPosX;
-		
+		int intEndLineXLeft = (int)verticalSensorLeftPosXEnd;
+		int intEndLineXRight = (int)verticalSensorRightPosXEnd;
 		
 		
 		intStartLineXLeft = intStartLineXLeft >> 5;
 		intStartLineXRight = intStartLineXRight >> 5;
+		intEndLineXLeft = intEndLineXLeft >> 5;
+		intEndLineXRight = intEndLineXRight >> 5;
 		
 		
 		TileCollisionResponse vertLeftSensorResponse = tileCollision_line(intStartLineXLeft, intStartLineY,
-													 					  intEndLineX, intEndLineYExtended);
+													 					  intEndLineXLeft, intEndLineYExtended);
 		
 		
 		TileCollisionResponse vertMidSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
 													 					 intEndLineX, intEndLineYExtended);
 		
 		TileCollisionResponse vertRightSensorResponse = tileCollision_line(intStartLineXRight, intStartLineY,
-													 					   intEndLineX, intEndLineYExtended);
+													 					   intEndLineXRight, intEndLineYExtended);
 			
+	
+		GetNode<Line2D>("VertSensorLeft").ClearPoints();
+		Vector2 debugPosStart = new Vector2((float)(intStartLineXLeft<<5), (float)(intStartLineY<<5));
+		Vector2 debugPosEnd = new Vector2((float)(intEndLineXLeft<<5), (float)(intEndLineYExtended<<5));
+		GetNode<Line2D>("VertSensorLeft").AddPoint(GetNode<Line2D>("VertSensorLeft").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("VertSensorLeft").AddPoint(GetNode<Line2D>("VertSensorLeft").ToLocal(debugPosEnd), 1);
+		
+		GetNode<Line2D>("VertSensorMid").ClearPoints();
+		debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intStartLineY<<5));
+		debugPosEnd = new Vector2((float)(intEndLineX<<5), (float)(intEndLineYExtended<<5));
+		GetNode<Line2D>("VertSensorMid").AddPoint(GetNode<Line2D>("VertSensorMid").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("VertSensorMid").AddPoint(GetNode<Line2D>("VertSensorMid").ToLocal(debugPosEnd), 1);
+		
+		
+		GetNode<Line2D>("VertSensorRight").ClearPoints();
+		debugPosStart = new Vector2((float)(intStartLineXRight<<5), (float)(intStartLineY<<5));
+		debugPosEnd = new Vector2((float)(intEndLineXRight<<5), (float)(intEndLineYExtended<<5));
+		GetNode<Line2D>("VertSensorRight").AddPoint(GetNode<Line2D>("VertSensorRight").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("VertSensorRight").AddPoint(GetNode<Line2D>("VertSensorRight").ToLocal(debugPosEnd), 1);
+		
+		
+		
+		
 		
 		// Between these 3 checks now choose which one we want to pick based on distance
 		// if the distance is the same they take precedence depending on the order and direction of movement
@@ -934,15 +962,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		int vertDistanceRight = 2000000000;
 		
 		
-		if (vertLeftSensorResponse == null) {
-			GD.Print("Left is null");
-		}
-		if (vertMidSensorResponse == null) {
-			GD.Print("Mid is null");
-		}
-		if (vertRightSensorResponse == null) {
-			GD.Print("Right is null");
-		}
+		
 		
 		if (vertLeftSensorResponse != null) {
 			vertDistanceLeft = intStartLineY - vertLeftSensorResponse.tileTopPosY;
@@ -984,13 +1004,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		*/
 		
 	
-		if (vertDistanceLeft < vertDistanceMid && vertDistanceLeft < vertDistanceRight) {
+		if (vertDistanceLeft < vertDistanceMid && vertDistanceLeft <= vertDistanceRight) {
 			closestYTileResponse = vertLeftSensorResponse;
 			GD.Print("Left Sensor was choosen");
-		} else if (vertDistanceMid < vertDistanceLeft && vertDistanceMid < vertDistanceRight) {
+		} else if (vertDistanceMid <= vertDistanceLeft && vertDistanceMid <= vertDistanceRight) {
 			closestYTileResponse = vertMidSensorResponse;
 			GD.Print("Mid Sensor was choosen");
-		} else if (vertDistanceRight < vertDistanceLeft && vertDistanceRight < vertDistanceMid){
+		} else if (vertDistanceRight < vertDistanceLeft && vertDistanceRight <= vertDistanceMid){
 			closestYTileResponse = vertRightSensorResponse;
 			GD.Print("Right Sensor was choosen");
 		}
@@ -1366,6 +1386,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		// Start on airborne state
 		this.state = PLAYER_STATE_AIRBORNE;
+		
+		
 		
 	}
 	

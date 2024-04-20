@@ -13,6 +13,8 @@ config_version=5
 config/name="ServerProject"
 run/main_scene="res://levels/TestLevel.tscn"
 config/features=PackedStringArray("4.2", "C#", "Forward Plus")
+run/low_processor_mode_sleep_usec=0
+run/delta_smoothing=false
 boot_splash/show_image=false
 config/icon="res://icon.svg"
 
@@ -105,3 +107,4 @@ INPUT_SLOWDEBUG={
 common/physics_ticks_per_second=120
 common/max_physics_steps_per_frame=100
 common/physics_jitter_fix=0.0
+common/enable_object_picking=false

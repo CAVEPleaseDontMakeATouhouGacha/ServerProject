@@ -22,6 +22,10 @@ public partial class PlatformerPlayerBase : Node2D
 	//======================
 	//! Tileset constants
 	//======================
+
+
+	public const int TILEMETA_VERTTILES_PLAYERHEIGHT = 4;
+	public const int TILEMETA_HORITILES_PLAYERWIDTH = 2;
 	
 	public const int TILEDATA_TYPE = 0;
 	
@@ -817,7 +821,7 @@ public partial class PlatformerPlayerBase : Node2D
 				// Grab terrain info
 				// Point(posY,posX);
 				Vector2I tilePos = new Vector2I(posY, posX);
-				tile = tilemap.GetCellTileData(0, tilePos);
+				tile = this.tilemap.GetCellTileData(0, tilePos);
 				
 				// Record position of where we found the tile reversed
 				tileResponse.tileTopPosX = posY;
@@ -830,7 +834,7 @@ public partial class PlatformerPlayerBase : Node2D
 				// Grab terrain info 
 				// Point(posX,posY);
 				Vector2I tilePos = new Vector2I(posX, posY);
-				tile = tilemap.GetCellTileData(0, tilePos);
+				tile = this.tilemap.GetCellTileData(0, tilePos);
 				
 				// Record position of where we found the tile
 				tileResponse.tileTopPosX = posX;
@@ -878,114 +882,101 @@ public partial class PlatformerPlayerBase : Node2D
 	}
 	
 	
-	public int tileCollision_groundCeiling(float sensorOffsetY) {
+	
+	
+	
+	
+	//!TODO: Probably deprecate?
+	// Search if there are tiles above this one
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool tileCollision_checkForAboveWall(TileCollisionResponse lookAround) {
 		
+		const int tilePlayerHeight = TILEMETA_VERTTILES_PLAYERHEIGHT;
+		int currentAboveTile = 1;
 		
+		do {
+						
+			Vector2I tileAboveClosest = new Vector2I(lookAround.tileTopPosX, lookAround.tileTopPosY - currentAboveTile);
+			TileData aboveTile = this.tilemap.GetCellTileData(0, tileAboveClosest);
 		
-		
-		float tileHeight = -16;
-		
-		// If we are checking for ground we move 16 pixels up, if we are using ceilings we go down
-		if (sensorOffsetY < 0.0) {
-			
-			tileHeight = +16;
-			
-		}
-		
-		
-		// Check 3 tiles bellow
-		
-		Vector2I tileSensor = new Vector2I();
-		tileSensor.Y = (int)(this.position.Y + sensorOffsetY);
-		tileSensor.X = (int)(this.position.X - 65.5f);
-		
-		// Convert to tile index
-		tileSensor.Y = tileSensor.Y >> 5;
-		tileSensor.X = tileSensor.X >> 5;  
-		
-		// Start by checking the tiles left to right
-		tileSensor.X = tileSensor.X - 1;
-		
-		// Tiles to check
-		int tileCheckNum = 3;
-		
-		while (tileCheckNum > 0) {
-			
-			TileData tile = tilemap.GetCellTileData(0, tileSensor);
-			
-			// If there is no tile there move to the next one
-			if (tile == null) {
-				
-				tileCheckNum = tileCheckNum - 1;
-				tileSensor.Y = tileSensor.Y + 1;
-				continue;
+			if (aboveTile != null) {
+				if(aboveTile.Terrain != TILETYPE_EMPTY) {
+					return true;
+				}
 			}
 			
+			currentAboveTile = currentAboveTile + 1;
 			
-			int tileType = tile.Terrain;
-			
-			
-			switch (tileType) {
-				
-				case TILETYPE_EMPTY: {
+		} while (currentAboveTile <= tilePlayerHeight);
+	
+		return false;
+	}
+	
+	//!TODO: Probably deprecate?
+	// Search if there are tiles bellow this one
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool tileCollision_checkForBelowWall(TileCollisionResponse lookAround) {
+		
+		const int tilePlayerHeight = TILEMETA_VERTTILES_PLAYERHEIGHT;
+		int currentBelowTile = 1;
 					
-					// Do nothing, move to the next tile
-					break;
+		do {
+						
+			Vector2I tileBelowClosest = new Vector2I(lookAround.tileTopPosX, lookAround.tileTopPosY + currentBelowTile);
+			TileData belowTile = this.tilemap.GetCellTileData(0, tileBelowClosest);
+					
+			if (belowTile != null) {
+				if(belowTile.Terrain != TILETYPE_EMPTY) {
+					return true;
 				}
-				
-				case TILETYPE_FULLSOLID: {
+			}
+						
+			currentBelowTile = currentBelowTile + 1;
+						
+		} while (currentBelowTile <= tilePlayerHeight);
+		
+		return false;
+	}
+	
+	
+	
+	
+	// Do separated vertical and horizontal look around so we don't need nested loops
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool tileCollision_checkForVericalTiles(TileCollisionResponse lookAround,
+												   int numberOfTilesToLook,
+												   int lookDirection) {
+		
+		int currentLookTile = lookDirection;
+		
+		do {
+						
+			Vector2I tileLookVec = new Vector2I(lookAround.tileTopPosX, lookAround.tileTopPosY + currentLookTile);
+			TileData lookTile = this.tilemap.GetCellTileData(0, tileLookVec);
 					
-					Vector2 tilePos = tilemap.MapToLocal(tileSensor);
-					tilePos = this.ToGlobal(tilePos);
-					
-					tilePos.Y = tilePos.Y + tileHeight;
-					
-					this.position.Y = tilePos.Y;
-					
-					return TILECOLRES_GROUND;
-					
-					break;
+			// Check if it's part of a wall
+			if (lookTile != null) {
+									
+				if(lookTile.Terrain != TILETYPE_EMPTY) {
+									
+					// Then clostest Y full solid is part of a wall.
+					// Ignore it
+					return true;
 				}
-				
-				
-				
+									
 			}
 			
-			
-			// Go to the next tile 
-			tileSensor.Y = tileSensor.Y + 1;
-			tileCheckNum = tileCheckNum - 1;
-		}
-		
-		
-		return TILECOLRES_NONE;
-		
-		
-	}
+			currentLookTile = currentLookTile + lookDirection;
+			numberOfTilesToLook = numberOfTilesToLook - 1;
+				
+		} while (numberOfTilesToLook > 0);
 	
-	public void tileCollision_leftSide() {
-		
-		
-		
-		
-	}
+		return false;
 	
-	public void tileCollision_rightSide() {
-		
-		
-		
-		
 	}
 	
 	
-	public void tileCollision_ceiling() {
-		
-		
-		
-		
-	}
-	
-	
+	//! Init player
 	
 	
 	public void initPlatformerPlayerBase() {

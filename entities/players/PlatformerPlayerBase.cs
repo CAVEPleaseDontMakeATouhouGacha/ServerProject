@@ -921,6 +921,40 @@ public partial class PlatformerPlayerBase : Node2D
 	}
 	
 	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool tileCollision_checkForHorizontalTiles(TileCollisionResponse lookAround,
+												   	  int numberOfTilesToLook,
+												   	  int lookDirection) {
+		
+		int currentLookTile = lookDirection;
+		
+		do {
+						
+			Vector2I tileLookVec = new Vector2I(lookAround.tileTopPosX + currentLookTile, lookAround.tileTopPosY);
+			TileData lookTile = this.tilemap.GetCellTileData(0, tileLookVec);
+					
+			// Check if it's part of a wall
+			if (lookTile != null) {
+									
+				if(lookTile.Terrain != TILETYPE_EMPTY) {
+									
+					return true;
+				}
+									
+			}
+			
+			currentLookTile = currentLookTile + lookDirection;
+			numberOfTilesToLook = numberOfTilesToLook - 1;
+				
+		} while (numberOfTilesToLook > 0);
+	
+		return false;
+	
+	}
+	
+	
+	
+	
 	//! Init player
 	
 	

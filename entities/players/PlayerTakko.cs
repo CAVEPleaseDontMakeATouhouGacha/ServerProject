@@ -295,12 +295,27 @@ public partial class PlayerTakko : PlatformerPlayerBase
 					
 					// If we are moving to the left
 					if (this.velocity.X < 0.0f) {
-					
+						
+						// Make sure what we are finding is a wall and not ground
+						// By seeing if there are 2 empty tiles, where the player could fit into to the right
+						/*
+						const int right = +1;
+						if (this.tileCollision_checkForHorizontalTiles(closestXTileResponse, TILEMETA_HORITILES_PLAYERWIDTH, right) == true) {
+							return;
+						}
+						*/
 						// We have found a wall on our left
 						this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) + this.rectWidth + 32.0f;
 					
 					} else if (this.velocity.X > 0.0f) {
-					
+						
+						/*
+						const int left = -1;
+						if (this.tileCollision_checkForHorizontalTiles(closestXTileResponse, TILEMETA_HORITILES_PLAYERWIDTH, left) == true) {
+							return;
+						}
+						*/
+						
 						// We have found a wall on our right
 						this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) - this.rectWidth;
 					
@@ -1010,26 +1025,41 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		float horiSensorDownPosYEnd = lineEndPosYPrecise + horiSensorYOffset;
 		float horiSensorBottomPosYEnd = lineEndPosYPrecise + this.rectHeight;
 		
-		
+		// Set up the tile versions
 		int intHoriSensorTopPosYStart = (int)horiSensorTopPosYStart;
+		int intHoriSensorUpPosYStart = (int)horiSensorUpPosYStart;
+		int intHoriSensorDownPosYStart = (int)horiSensorDownPosYStart;
 		int intHoriSensorBottomPosYStart = (int)horiSensorBottomPosYStart;
+		
+		int intHoriSensorTopPosYEnd = (int)horiSensorTopPosYEnd;
+		int intHoriSensorUpPosYEnd = (int)horiSensorUpPosYEnd;
+		int intHoriSensorDownPosYEnd = (int)horiSensorDownPosYEnd;
+		int intHoriSensorBottomPosYEnd = (int)horiSensorBottomPosYEnd;
 		
 		
 		intHoriSensorTopPosYStart = intHoriSensorTopPosYStart >> 5;
+		intHoriSensorUpPosYStart = intHoriSensorUpPosYStart >> 5;
+		intHoriSensorDownPosYStart = intHoriSensorDownPosYStart >> 5;
 		intHoriSensorBottomPosYStart = intHoriSensorBottomPosYStart >> 5;
+		
+		
+		intHoriSensorTopPosYEnd = intHoriSensorTopPosYEnd >> 5;
+		intHoriSensorUpPosYEnd = intHoriSensorUpPosYEnd >> 5;
+		intHoriSensorDownPosYEnd = intHoriSensorDownPosYEnd >> 5;
+		intHoriSensorBottomPosYEnd = intHoriSensorBottomPosYEnd >> 5;
 		
 		
 		
 		// Grab all possible tiles on the X axis
 		
-		TileCollisionResponse horiTopSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
-													 					 intEndLineXExtended, intEndLineY);
+		TileCollisionResponse horiTopSensorResponse = tileCollision_line(intStartLineX, intHoriSensorUpPosYStart,
+													 					 intEndLineXExtended, intHoriSensorUpPosYEnd);
 		
 		TileCollisionResponse horiMidSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
 													 					 intEndLineXExtended, intEndLineY);
 																		
-		TileCollisionResponse horiBottomSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
-													 					 	intEndLineXExtended, intEndLineY);
+		TileCollisionResponse horiBottomSensorResponse = tileCollision_line(intStartLineX, intHoriSensorDownPosYStart,
+													 					 	intEndLineXExtended, intHoriSensorDownPosYEnd);
 		
 		
 		GetNode<Line2D>("HoriSensorMid").ClearPoints();
@@ -1040,11 +1070,48 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 		
-		//!TODO: Pick one
+		int horiDistanceTop = 2000000000;
+		int horiDistanceUp = 2000000000;
+		int horiDistanceMid = 2000000000;
+		int horiDistanceDown = 2000000000;
+		int horiDistanceBottom = 2000000000;
 		
 		
+		if (horiTopSensorResponse != null) {
+			horiDistanceTop = intStartLineY - horiTopSensorResponse.tileTopPosY;
+		}
+		if (horiMidSensorResponse != null) {
+			horiDistanceMid = intStartLineY - horiMidSensorResponse.tileTopPosY;
+		}
+		if (horiBottomSensorResponse != null) {
+			horiDistanceBottom = intStartLineY - horiBottomSensorResponse.tileTopPosY;
+		}
 		
+		
+		//TileCollisionResponse closestXTileResponse = null;
 		TileCollisionResponse closestXTileResponse = horiMidSensorResponse;
+		
+		// If moving down, up takes precedence and vice versa?
+		/*
+		closestXTileResponse = vertMidSensorResponse;
+		if(this.velocity.X < 0.0f) {
+			closestYTileResponse = vertRightSensorResponse;
+		} else if (this.velocity.X > 0.0f) {
+			closestYTileResponse = vertLeftSensorResponse;
+		} 
+		*/
+	
+	
+		if (horiDistanceTop < horiDistanceMid && horiDistanceTop <= horiDistanceBottom) {
+			closestXTileResponse = horiTopSensorResponse;
+		} else if (horiDistanceMid <= horiDistanceTop && horiDistanceMid <= horiDistanceBottom) {
+			closestXTileResponse = horiMidSensorResponse;
+		} else if (horiDistanceBottom < horiDistanceTop && horiDistanceBottom <= horiDistanceMid){
+			closestXTileResponse = horiBottomSensorResponse;
+		}
+		
+		
+		
 		
 		
 				

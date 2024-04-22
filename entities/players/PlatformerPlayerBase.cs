@@ -886,61 +886,6 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	
-	//!TODO: Probably deprecate?
-	// Search if there are tiles above this one
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool tileCollision_checkForAboveWall(TileCollisionResponse lookAround) {
-		
-		const int tilePlayerHeight = TILEMETA_VERTTILES_PLAYERHEIGHT;
-		int currentAboveTile = 1;
-		
-		do {
-						
-			Vector2I tileAboveClosest = new Vector2I(lookAround.tileTopPosX, lookAround.tileTopPosY - currentAboveTile);
-			TileData aboveTile = this.tilemap.GetCellTileData(0, tileAboveClosest);
-		
-			if (aboveTile != null) {
-				if(aboveTile.Terrain != TILETYPE_EMPTY) {
-					return true;
-				}
-			}
-			
-			currentAboveTile = currentAboveTile + 1;
-			
-		} while (currentAboveTile <= tilePlayerHeight);
-	
-		return false;
-	}
-	
-	//!TODO: Probably deprecate?
-	// Search if there are tiles bellow this one
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool tileCollision_checkForBelowWall(TileCollisionResponse lookAround) {
-		
-		const int tilePlayerHeight = TILEMETA_VERTTILES_PLAYERHEIGHT;
-		int currentBelowTile = 1;
-					
-		do {
-						
-			Vector2I tileBelowClosest = new Vector2I(lookAround.tileTopPosX, lookAround.tileTopPosY + currentBelowTile);
-			TileData belowTile = this.tilemap.GetCellTileData(0, tileBelowClosest);
-					
-			if (belowTile != null) {
-				if(belowTile.Terrain != TILETYPE_EMPTY) {
-					return true;
-				}
-			}
-						
-			currentBelowTile = currentBelowTile + 1;
-						
-		} while (currentBelowTile <= tilePlayerHeight);
-		
-		return false;
-	}
-	
-	
-	
-	
 	// Do separated vertical and horizontal look around so we don't need nested loops
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool tileCollision_checkForVericalTiles(TileCollisionResponse lookAround,

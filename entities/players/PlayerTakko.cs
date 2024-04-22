@@ -367,18 +367,12 @@ public partial class PlayerTakko : PlatformerPlayerBase
 					
 					// If the tile we think is ground does not allow for space for the character to stand on,
 					// it's probably a wall
-				
-					if (this.tileCollision_checkForAboveWall(closestYTileResponse) == true) {
-						return;
-					}
 					
-					/*
-					// This one also works perfectly
 					const int above = -1;
 					if (this.tileCollision_checkForVericalTiles(closestYTileResponse, TILEMETA_VERTTILES_PLAYERHEIGHT, above) == true) {
 						return;
 					}
-					*/	
+					
 				
 					int tilePlayerHeight = 4;
 					int currentAboveTile = 1;

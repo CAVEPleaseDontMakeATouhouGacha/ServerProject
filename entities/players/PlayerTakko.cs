@@ -388,33 +388,32 @@ public partial class PlayerTakko : PlatformerPlayerBase
 						return;
 					}
 					
-				
-					int tilePlayerHeight = 4;
-					int currentAboveTile = 1;
 					
 					
-					//this.tileCollision_checkForVerticalTiles
+					if (this.tileCollision_verticalSnap(closestYTileResponse) == false) {
+						return;
+					}
+					
 					/*
-					do {
+					// Only snap to tile if we are close enough to it and we are using one of the edge sensors
+					if (this.sensorUsedForVertCollision != TILESENSOR_VERT_MID) {
 						
-						Vector2I tileAboveClosest = new Vector2I(closestYTileResponse.tileTopPosX, closestYTileResponse.tileTopPosY - currentAboveTile);
-						TileData aboveTile = this.tilemap.GetCellTileData(0, tileAboveClosest);
+						
+						
 					
-						// Check if it's part of a wall
-						if (aboveTile != null) {
-									
-							if(aboveTile.Terrain != TILETYPE_EMPTY) {
-									
-								// Then clostest Y full solid is part of a wall.
-								// Ignore it
-								return;
-							}
-									
+						float tilePosY = (float)(closestYTileResponse.tileTopPosY << 5);
+						float distance = tilePosY - this.position.Y;
+						GD.Print("EEE" + distance);
+						
+						// If the distance between player center and tile is bigger than 64(two tiles)
+						// don't snapp
+						// Or use 32 + 24 = 56 so then player is snapped to tiles if they are close enough
+						// Or 48
+						if (distance < 48.0f) {
+							return;
 						}
 						
-						currentAboveTile = currentAboveTile + 1;
-						
-					} while (currentAboveTile <= tilePlayerHeight);
+					}
 					*/
 					
 					
@@ -1209,10 +1208,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		// If moving to the left the right one takes precedence and the contrary is true
 		closestYTileResponse = vertMidSensorResponse;
+		this.sensorUsedForVertCollision = TILESENSOR_VERT_MID;
 		if(this.velocity.X < 0.0f) {
 			closestYTileResponse = vertRightSensorResponse;
+			this.sensorUsedForVertCollision = TILESENSOR_VERT_RIGHT;
 		} else if (this.velocity.X > 0.0f) {
 			closestYTileResponse = vertLeftSensorResponse;
+			this.sensorUsedForVertCollision = TILESENSOR_VERT_LEFT;
 		} 
 		
 		/*
@@ -1231,12 +1233,15 @@ public partial class PlayerTakko : PlatformerPlayerBase
 	
 		if (vertDistanceLeft < vertDistanceMid && vertDistanceLeft <= vertDistanceRight) {
 			closestYTileResponse = vertLeftSensorResponse;
+			this.sensorUsedForVertCollision = TILESENSOR_VERT_LEFT;
 			GD.Print("Left Sensor was choosen");
 		} else if (vertDistanceMid <= vertDistanceLeft && vertDistanceMid <= vertDistanceRight) {
 			closestYTileResponse = vertMidSensorResponse;
+			this.sensorUsedForVertCollision = TILESENSOR_VERT_MID;
 			GD.Print("Mid Sensor was choosen");
 		} else if (vertDistanceRight < vertDistanceLeft && vertDistanceRight <= vertDistanceMid){
 			closestYTileResponse = vertRightSensorResponse;
+			this.sensorUsedForVertCollision = TILESENSOR_VERT_RIGHT;
 			GD.Print("Right Sensor was choosen");
 		}
 		

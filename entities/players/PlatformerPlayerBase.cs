@@ -46,6 +46,9 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	
+	public const int TILESENSOR_VERT_LEFT = 0;
+	public const int TILESENSOR_VERT_MID = 1;
+	public const int TILESENSOR_VERT_RIGHT = 2;
 	
 	//======================
 	//! Constants
@@ -267,6 +270,10 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	public float circleRadius = cDefaultCircleRadius;
 	public float circleRadiusSqrd = cDefaultCircleRadius * cDefaultCircleRadius;
+	
+	
+	public int sensorUsedForVertCollision;
+	
 	
 	// Parents
 	
@@ -951,6 +958,29 @@ public partial class PlatformerPlayerBase : Node2D
 		return false;
 	
 	}
+	
+	
+	// Snap to a tile if the player just missed it
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool tileCollision_verticalSnap(TileCollisionResponse tileSnap) {
+		
+		// Only snap to tile if we are close enough to it and we are using one of the edge sensors
+		if (this.sensorUsedForVertCollision != TILESENSOR_VERT_MID) {
+			
+			float tilePosY = (float)(tileSnap.tileTopPosY << 5);
+			float distance = tilePosY - this.position.Y;
+							
+							
+			// If the distance between player center and tile is bigger than 64(two tiles)
+			// don't snapp
+			// Or use 32 + 24 = 56 so then player is snapped to tiles if they are close enough
+			// Or 48
+			return (distance > 48.0f);
+		}
+		
+		return true;
+	}
+	
 	
 	
 	

@@ -260,6 +260,11 @@ public partial class PlatformerPlayerBase : Node2D
 	public int grazingTimer;
 	public int cancelingTimer;
 	
+	// The timer to be sure if the player is inside the Coyote Time window or not
+	// Default coyote time is 0.133 seconds aka 16 ticks
+	public int coyoteTimer;
+	public const int cDefaultCoyoteTime = 16;
+	
 	
 	public const float cDefaultRectHeight = 63.5f;
 	public const float cDefaultRectWidth = 31.5f;
@@ -477,32 +482,71 @@ public partial class PlatformerPlayerBase : Node2D
 	}
 	
 	
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void movementGeneral_startJump(double delta) {
 	
-		// If there are jumps left
-		if (this.jumpsLeft > 0) {
-				
-				
-			// No longer grounded
-			this.state = PLAYER_STATE_JUMPING;
-			this.flags = flags & ~PLAYER_BITFLAG_GROUNDED;
-			this.flags = flags | PLAYER_BITFLAG_JUMPING;
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool movementGeneral_startJumpHold(double delta) {
+		
+		// Check raw keystates so player can hold the jump button to instantly jump
+		// when they touch the ground
+		if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+			
+			// If there are jumps left
+			return (this.jumpsLeft > 0);
+		}	
+	
+		return false;
+		
+	}
+	
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool movementGeneral_startJumpRepress(double delta) {
+		
+		// Only jump if player has repressed the keys
+		if ((this.lookKeystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+			
+			// If there are jumps left
+			if (this.jumpsLeft > 0) {
 					
-			this.jumpsLeft = this.jumpsLeft - 1;
-					
-			// Give full jump force and later check if player stopped holding down button
-			this.velocity.Y = -this.jumpForce;
-					
-			// Slope jumps
-			//velocity.X = velocity.X - (jumpForce * sin(Ground Angle));
-			//velocity.Y = velocity.Y - (jumpForce * cos(Ground Angle));
+				// Force player to repress jump
+				this.actionRepressForcer = this.actionRepressForcer | PLAYER_INPUTFLAG_JUMP;
+				return true;
+			
+			}
+
 			
 		} 
+		return false;
+		
+	}
+	
+	
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void movementGeneral_setJump(double delta) {
+	
+
+		// No longer grounded
+		this.state = PLAYER_STATE_JUMPING;
+		this.flags = flags & ~PLAYER_BITFLAG_GROUNDED;
+		this.flags = flags | PLAYER_BITFLAG_JUMPING;
+					
+		this.jumpsLeft = this.jumpsLeft - 1;
+					
+		// Give full jump force and later check if player stopped holding down button
+		this.velocity.Y = -this.jumpForce;
+					
+		// Slope jumps
+		//velocity.X = velocity.X - (jumpForce * sin(Ground Angle));
+		//velocity.Y = velocity.Y - (jumpForce * cos(Ground Angle));
+			
+	} 
 				
 
 		
-	}
+
 	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void movementGeneral_stopJump(double delta) {
@@ -524,6 +568,23 @@ public partial class PlatformerPlayerBase : Node2D
 		}
 		
 	}
+	
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool movementGeneral_updateCoyoteTimer(double delta) {
+		
+		// Decrease Coyote Timer by one
+		this.coyoteTimer = this.coyoteTimer - 1;
+		
+		
+		// If we are in the Coyote Time Window
+		// We do this by checking if the timer hasn't reached 0
+		return (this.coyoteTimer > 0);
+		
+		
+		
+	}
+	
 	
 	/*
 	// 8-way movement, 4 Cardinal, 4 Ordinal

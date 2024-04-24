@@ -518,6 +518,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		this.canDoBikeKick = true;
 		this.canDoHundredKicks = true;
 		
+		// Reset Coyote Time
+		this.coyoteTimer = cDefaultCoyoteTime;
+		
 	}
 	
 	
@@ -720,19 +723,17 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				this.velocity.X = this.moveDirection.X * this.scalarSpeed;
 				
 				
-				// Check raw keystates so player can hold the jump button to instantly jump
-				// when they touch the ground
-				if ((this.keystates & PLAYER_INPUTFLAG_JUMP) == PLAYER_INPUTFLAG_JUMP) {
+				
+				if (this.movementGeneral_startJumpHold(delta) == true) {
 					
-					// Force player to repress jump
-					//this.actionRepressForcer = this.actionRepressForcer | PLAYER_INPUTFLAG_JUMP;
-					
-					this.movementGeneral_startJump(delta);
+					this.movementGeneral_setJump(delta);
 					
 					// Start handling jump on this tick
 					this.state = PLAYER_STATE_JUMPING;
 					goto case(PLAYER_STATE_JUMPING);
+					
 				}
+				
 				
 				
 				//!TODO: Maybe move this to another place in the future
@@ -759,8 +760,29 @@ public partial class PlayerTakko : PlatformerPlayerBase
 				}
 				*/
 				
-				//! MAYBE: If we wanted to implement coyote time all we need to do is use a timer here
-				// and check if the input is within that time, of course as long as the timer is set on the tile collision function
+				
+				// If it's possible to do a coyote time jump
+				if (this.movementGeneral_updateCoyoteTimer(delta) == true) {
+					
+					// We just check if the player is holding down jump
+					if (this.movementGeneral_startJumpHold(delta) == true) {
+						
+						// Set Coyote Time to 0
+						this.coyoteTimer = 0;
+						
+						this.movementGeneral_setJump(delta);
+						
+						// Start handling jump on this tick
+						this.state = PLAYER_STATE_JUMPING;
+						goto case(PLAYER_STATE_JUMPING);
+					
+					}
+
+					
+				}
+				
+				
+				
 				
 				this.movementGeneral_calculateDirections(delta);
 				

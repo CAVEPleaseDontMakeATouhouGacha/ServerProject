@@ -286,43 +286,59 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			case (TILETYPE_FULLSOLID): {
 				
 				// Only push the player out if the tile is in the center of the hitbox
-			
-				//int tileDistance = intStartLineY - closestXTileResponse.tileTopPosY;
-				int tileDistance = 0;
-				//GD.Print("CLosestXTilePos Y:" + (closestXTileResponse.tileTopPosY << 5) + " X:" + (closestXTileResponse.tileTopPosX << 5));
-				//GD.Print("Distance " + distance + "startlinePos " + intStartLineY);
-				if (Math.Abs(tileDistance) < 2) {
+				
+				// If we are moving to the left
+				if (this.velocity.X < 0.0f) {
 					
-					// If we are moving to the left
-					if (this.velocity.X < 0.0f) {
+				
+					// Don't consider grounds or ceilings walls
+					if (this.sensorUsedForHoriCollision == TILESENSOR_HORI_TOP || this.sensorUsedForHoriCollision == TILESENSOR_HORI_BOTTOM) {
 						
-						// Make sure what we are finding is a wall and not ground
-						// By seeing if there are 2 empty tiles, where the player could fit into to the right
-						/*
-						const int right = +1;
-						if (this.tileCollision_checkForHorizontalTiles(closestXTileResponse, TILEMETA_HORITILES_PLAYERWIDTH, right) == true) {
+						// Check if we are looking at the ground
+						int right = +1;
+						if (this.tileCollision_checkForHorizontalTiles(closestXTileResponse, 2,right) == true) {
+								
 							return;
+								
 						}
-						*/
-						// We have found a wall on our left
-						this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) + this.rectWidth + 32.0f;
-					
-					} else if (this.velocity.X > 0.0f) {
-						
-						/*
-						const int left = -1;
-						if (this.tileCollision_checkForHorizontalTiles(closestXTileResponse, TILEMETA_HORITILES_PLAYERWIDTH, left) == true) {
-							return;
-						}
-						*/
-						
-						// We have found a wall on our right
-						this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) - this.rectWidth;
-					
 					}
 					
+						
+					// Make sure what we are finding is a wall and not ground
+					if (this.tileCollision_HorizontalSnap(closestXTileResponse) == true) {
+						return;
+					}
+						
+					// We have found a wall on our left
+					this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) + this.rectWidth + 32.0f;
+					
+				} else if (this.velocity.X > 0.0f) {
+						
+					
+					// Don't consider grounds or ceilings walls
+					if (this.sensorUsedForHoriCollision == TILESENSOR_HORI_TOP || this.sensorUsedForHoriCollision == TILESENSOR_HORI_BOTTOM) {
+						
+						// Check if we are looking at the ground
+						int left = -1;
+						if (this.tileCollision_checkForHorizontalTiles(closestXTileResponse, 2,left) == true) {
+								
+							return;
+								
+						}
+					}
+					
+					if (this.tileCollision_HorizontalSnap(closestXTileResponse) == true) {
+						return;						
+					}
+						
+						
+					// We have found a wall on our right
+					this.position.X = (float)(closestXTileResponse.tileTopPosX << 5) - this.rectWidth;
 					
 				}
+					
+					
+				
 			
 		
 				break;	
@@ -1037,13 +1053,13 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		float horiSensorTopPosYStart = lineStartPosYPrecise - this.rectHeight;
 		float horiSensorUpPosYStart = lineStartPosYPrecise - horiSensorYOffset;
 		float horiSensorMidPosY = lineStartPosYPrecise;
-		float horiSensorDownPosYStart = lineStartPosYPrecise + horiSensorYOffset;
+		float horiSensorDownPosYStart = lineStartPosYPrecise + horiSensorYOffset +0.5f;
 		float horiSensorBottomPosYStart = lineStartPosYPrecise + this.rectHeight;
 		
 		
 		float horiSensorTopPosYEnd = lineEndPosYPrecise - this.rectHeight;
 		float horiSensorUpPosYEnd = lineEndPosYPrecise - horiSensorYOffset;
-		float horiSensorDownPosYEnd = lineEndPosYPrecise + horiSensorYOffset;
+		float horiSensorDownPosYEnd = lineEndPosYPrecise + horiSensorYOffset +0.5f;
 		float horiSensorBottomPosYEnd = lineEndPosYPrecise + this.rectHeight;
 		
 		// Set up the tile versions
@@ -1073,22 +1089,56 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		// Grab all possible tiles on the X axis
 		
-		TileCollisionResponse horiTopSensorResponse = tileCollision_line(intStartLineX, intHoriSensorUpPosYStart,
+		TileCollisionResponse horiTopSensorResponse = tileCollision_line(intStartLineX, intHoriSensorTopPosYStart,
+													 					 intEndLineXExtended, intHoriSensorTopPosYEnd);
+		
+		
+		TileCollisionResponse horiUpSensorResponse = tileCollision_line(intStartLineX, intHoriSensorUpPosYStart,
 													 					 intEndLineXExtended, intHoriSensorUpPosYEnd);
 		
 		TileCollisionResponse horiMidSensorResponse = tileCollision_line(intStartLineX, intStartLineY,
 													 					 intEndLineXExtended, intEndLineY);
 																		
-		TileCollisionResponse horiBottomSensorResponse = tileCollision_line(intStartLineX, intHoriSensorDownPosYStart,
+		TileCollisionResponse horiDownSensorResponse = tileCollision_line(intStartLineX, intHoriSensorDownPosYStart,
 													 					 	intEndLineXExtended, intHoriSensorDownPosYEnd);
+																			
+		TileCollisionResponse horiBottomSensorResponse = tileCollision_line(intStartLineX, intHoriSensorBottomPosYStart,
+													 					 	intEndLineXExtended, intHoriSensorBottomPosYEnd);
 		
+		
+		Vector2 debugPosStart;
+		Vector2 debugPosEnd;
+		
+		GetNode<Line2D>("VertSensorLeft").ClearPoints();
+		debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intHoriSensorTopPosYStart<<5));
+		debugPosEnd = new Vector2((float)(intEndLineXExtended<<5), (float)(intHoriSensorTopPosYEnd<<5));
+		GetNode<Line2D>("VertSensorLeft").AddPoint(GetNode<Line2D>("VertSensorLeft").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("VertSensorLeft").AddPoint(GetNode<Line2D>("VertSensorLeft").ToLocal(debugPosEnd), 1);
+		
+		GetNode<Line2D>("VertSensorMid").ClearPoints();
+		debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intHoriSensorUpPosYStart<<5));
+		debugPosEnd = new Vector2((float)(intEndLineXExtended<<5), (float)(intHoriSensorUpPosYEnd<<5));
+		GetNode<Line2D>("VertSensorMid").AddPoint(GetNode<Line2D>("VertSensorMid").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("VertSensorMid").AddPoint(GetNode<Line2D>("VertSensorMid").ToLocal(debugPosEnd), 1);
 		
 		GetNode<Line2D>("HoriSensorMid").ClearPoints();
-		Vector2 debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intStartLineY<<5));
-		Vector2 debugPosEnd = new Vector2((float)(intEndLineXExtended<<5), (float)(intEndLineY<<5));
+		debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intStartLineY<<5));
+		debugPosEnd = new Vector2((float)(intEndLineXExtended<<5), (float)(intEndLineY<<5));
 		GetNode<Line2D>("HoriSensorMid").AddPoint(GetNode<Line2D>("HoriSensorMid").ToLocal(debugPosStart), 0);
 		GetNode<Line2D>("HoriSensorMid").AddPoint(GetNode<Line2D>("HoriSensorMid").ToLocal(debugPosEnd), 1);
 		
+		
+		GetNode<Line2D>("VertSensorRight").ClearPoints();
+		debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intHoriSensorDownPosYStart<<5));
+		debugPosEnd = new Vector2((float)(intEndLineXExtended<<5), (float)(intHoriSensorDownPosYEnd<<5));
+		GetNode<Line2D>("VertSensorRight").AddPoint(GetNode<Line2D>("VertSensorRight").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("VertSensorRight").AddPoint(GetNode<Line2D>("VertSensorRight").ToLocal(debugPosEnd), 1);
+		
+		GetNode<Line2D>("Sensor").ClearPoints();
+		debugPosStart = new Vector2((float)(intStartLineX<<5), (float)(intHoriSensorBottomPosYStart<<5));
+		debugPosEnd = new Vector2((float)(intEndLineXExtended<<5), (float)(intHoriSensorBottomPosYEnd<<5));
+		GetNode<Line2D>("Sensor").AddPoint(GetNode<Line2D>("Sensor").ToLocal(debugPosStart), 0);
+		GetNode<Line2D>("Sensor").AddPoint(GetNode<Line2D>("Sensor").ToLocal(debugPosEnd), 1);
 		
 		
 		int horiDistanceTop = 2000000000;
@@ -1099,18 +1149,24 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		
 		
 		if (horiTopSensorResponse != null) {
-			horiDistanceTop = intStartLineY - horiTopSensorResponse.tileTopPosY;
+			horiDistanceTop = intStartLineY - horiTopSensorResponse.tileTopPosX;
+		}
+		if (horiUpSensorResponse != null) {
+			horiDistanceUp = intStartLineY - horiUpSensorResponse.tileTopPosX;
 		}
 		if (horiMidSensorResponse != null) {
-			horiDistanceMid = intStartLineY - horiMidSensorResponse.tileTopPosY;
+			horiDistanceMid = intStartLineY - horiMidSensorResponse.tileTopPosX;
+		}
+		if (horiDownSensorResponse != null) {
+			horiDistanceDown = intStartLineY - horiDownSensorResponse.tileTopPosX;
 		}
 		if (horiBottomSensorResponse != null) {
-			horiDistanceBottom = intStartLineY - horiBottomSensorResponse.tileTopPosY;
+			horiDistanceBottom = intStartLineY - horiBottomSensorResponse.tileTopPosX;
 		}
 		
 		
 		//TileCollisionResponse closestXTileResponse = null;
-		TileCollisionResponse closestXTileResponse = horiMidSensorResponse;
+		
 		
 		// If moving down, up takes precedence and vice versa?
 		/*
@@ -1121,16 +1177,31 @@ public partial class PlayerTakko : PlatformerPlayerBase
 			closestYTileResponse = vertLeftSensorResponse;
 		} 
 		*/
-	
-	
-		if (horiDistanceTop < horiDistanceMid && horiDistanceTop <= horiDistanceBottom) {
-			closestXTileResponse = horiTopSensorResponse;
-		} else if (horiDistanceMid <= horiDistanceTop && horiDistanceMid <= horiDistanceBottom) {
-			closestXTileResponse = horiMidSensorResponse;
-		} else if (horiDistanceBottom < horiDistanceTop && horiDistanceBottom <= horiDistanceMid){
-			closestXTileResponse = horiBottomSensorResponse;
-		}
 		
+		TileCollisionResponse closestXTileResponse = horiMidSensorResponse;
+		int minHoriDistance = horiDistanceMid;
+		this.sensorUsedForHoriCollision = TILESENSOR_HORI_MID;
+		
+		if (horiDistanceUp < minHoriDistance) {
+			minHoriDistance = horiDistanceUp;
+			closestXTileResponse = horiUpSensorResponse;
+			this.sensorUsedForHoriCollision = TILESENSOR_HORI_UP;
+		}
+		if (horiDistanceDown < minHoriDistance) {
+			minHoriDistance = horiDistanceDown;
+			closestXTileResponse = horiDownSensorResponse;
+			this.sensorUsedForHoriCollision = TILESENSOR_HORI_DOWN;
+		}
+		if (horiDistanceTop < minHoriDistance) {
+			minHoriDistance = horiDistanceTop;
+			closestXTileResponse = horiTopSensorResponse;
+			this.sensorUsedForHoriCollision = TILESENSOR_HORI_TOP;
+		}
+		if (horiDistanceBottom < minHoriDistance) {
+			minHoriDistance = horiDistanceBottom;
+			closestXTileResponse = horiBottomSensorResponse;
+			this.sensorUsedForHoriCollision = TILESENSOR_HORI_BOTTOM;
+		}
 		
 		
 		
@@ -1176,7 +1247,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		TileCollisionResponse vertRightSensorResponse = tileCollision_line(intStartLineXRight, intStartLineY,
 													 					   intEndLineXRight, intEndLineYExtended);
 			
-	
+		
+		
+		/*
 		GetNode<Line2D>("VertSensorLeft").ClearPoints();
 		debugPosStart = new Vector2((float)(intStartLineXLeft<<5), (float)(intStartLineY<<5));
 		debugPosEnd = new Vector2((float)(intEndLineXLeft<<5), (float)(intEndLineYExtended<<5));
@@ -1195,7 +1268,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		debugPosEnd = new Vector2((float)(intEndLineXRight<<5), (float)(intEndLineYExtended<<5));
 		GetNode<Line2D>("VertSensorRight").AddPoint(GetNode<Line2D>("VertSensorRight").ToLocal(debugPosStart), 0);
 		GetNode<Line2D>("VertSensorRight").AddPoint(GetNode<Line2D>("VertSensorRight").ToLocal(debugPosEnd), 1);
-		
+		*/
 		
 		
 		

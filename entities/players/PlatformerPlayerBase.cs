@@ -50,6 +50,12 @@ public partial class PlatformerPlayerBase : Node2D
 	public const int TILESENSOR_VERT_MID = 1;
 	public const int TILESENSOR_VERT_RIGHT = 2;
 	
+	public const int TILESENSOR_HORI_TOP = 0;
+	public const int TILESENSOR_HORI_UP = 1;
+	public const int TILESENSOR_HORI_MID = 2;
+	public const int TILESENSOR_HORI_DOWN = 3;
+	public const int TILESENSOR_HORI_BOTTOM = 4;
+	
 	//======================
 	//! Constants
 	//======================
@@ -278,7 +284,7 @@ public partial class PlatformerPlayerBase : Node2D
 	
 	
 	public int sensorUsedForVertCollision;
-	
+	public int sensorUsedForHoriCollision;
 	
 	// Parents
 	
@@ -960,6 +966,7 @@ public partial class PlatformerPlayerBase : Node2D
 												   int numberOfTilesToLook,
 												   int lookDirection) {
 		
+		
 		int currentLookTile = lookDirection;
 		
 		do {
@@ -1042,6 +1049,51 @@ public partial class PlatformerPlayerBase : Node2D
 		return true;
 	}
 	
+	
+	
+	// Snap to a tile if the player just missed it
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool tileCollision_HorizontalSnap(TileCollisionResponse tileSnap) {
+		
+		// Only snap to wall if there is a good amount of overlap and it's not ground or ceiling
+		
+		
+		
+		switch (this.sensorUsedForHoriCollision) {
+			
+			case (TILESENSOR_HORI_BOTTOM): {
+				
+				float tilePosY = (float)(tileSnap.tileTopPosY << 5);
+				float distance = tilePosY - this.position.Y;
+				
+				// If the distance between player center and tile is bigger than 64(two tiles)
+				// don't snapp
+				// Or use 32 + 24 = 56 so then player is snapped to tiles if they are close enough
+				// Or 48
+				return (distance > 48.0f);
+				
+			}
+			
+			case(TILESENSOR_HORI_TOP): {
+				
+				float tilePosY = (float)(tileSnap.tileTopPosY << 5);
+				float distance = tilePosY - this.position.Y;
+				
+				return (distance > 48.0f);
+				
+			}
+			
+			
+		};
+			
+			
+		
+		
+		
+		
+		
+		return false;
+	}
 	
 	
 	

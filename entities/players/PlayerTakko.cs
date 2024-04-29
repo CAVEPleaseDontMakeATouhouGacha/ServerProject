@@ -1046,7 +1046,7 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		// X Tile Grabbing
 		
 		
-		float horiSensorYOffset = this.rectHeight / 4;
+		float horiSensorYOffset = this.rectHeight / 2;
 		
 		// The horizontal tile sensor are the edges of the hitbox
 		// Set up the various horizontal sensors origins
@@ -1294,9 +1294,9 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		}
 		
 		
-		GD.Print("Distance Left " + vertDistanceLeft);
-		GD.Print("Distance Mid " + vertDistanceMid);
-		GD.Print("Distance Right " + vertDistanceRight);
+		//GD.Print("Distance Left " + vertDistanceLeft);
+		//GD.Print("Distance Mid " + vertDistanceMid);
+		//GD.Print("Distance Right " + vertDistanceRight);
 		
 		TileCollisionResponse closestYTileResponse = null;
 		
@@ -1341,7 +1341,8 @@ public partial class PlayerTakko : PlatformerPlayerBase
 		}
 		
 	
-		
+		//closestYTileResponse = this.tileCollision_lineVert(intStartLineX, intStartLineY,
+		//											 	   intEndLineX, intEndLineYExtended);
 		
 		
 		

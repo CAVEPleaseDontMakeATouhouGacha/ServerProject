@@ -641,6 +641,354 @@ public partial class PlatformerPlayerBase : Node2D
 	//======================
 	
 	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public TileCollisionResponse tileCollision_getAndCheckTileAt (TileCollisionResponse tileResponse ,int tilePosX, int tilePosY) {
+		
+		Vector2I tilePos = new Vector2I(tilePosY, tilePosX);
+		TileData tile = this.tilemap.GetCellTileData(0, tilePos);
+				
+		// If tile not null or empty return it
+		if (tile != null) {
+						
+			if(tile.Terrain != TILETYPE_EMPTY) {
+				// We found a possible tile
+				// Record position of where we found the tile reversed
+				tileResponse.tileTopPosX = tilePosY;
+				tileResponse.tileTopPosY = tilePosX;
+				tileResponse.tileData = tile;
+				return tileResponse;
+			}
+						
+		} 												
+		
+		return tileResponse;													
+															
+	}
+	
+	
+	// Tile map line check for horizontal collision
+	public TileCollisionResponse tileCollision_lineHori(int lineStartPosX, int lineStartPosY, 
+									   					int lineEndPosX, int lineEndPosY) {
+		
+		
+		
+		TileCollisionResponse tileResponse = new TileCollisionResponse();
+		
+		// The steep value, since we cannot move sub tiles we build up a steep value until it's
+		// big enough to go to the next tile
+		
+		
+		bool steep = Math.Abs(lineEndPosY - lineStartPosY) > Math.Abs(lineEndPosX - lineStartPosX);
+		
+		
+		int tempSwap;
+		
+		// If the line is more vertical than horizontal
+		if (steep) {
+			// We "rotate" the horizontal line we will draw,
+			// so vertical line becomes the horizontal one
+			tempSwap = lineStartPosX;
+			lineStartPosX = lineStartPosY;
+			lineStartPosY = tempSwap;
+			
+			tempSwap = lineEndPosX;
+			lineEndPosX = lineEndPosY;
+			lineEndPosY = tempSwap;
+			
+		}
+		
+		// If the start position is more to the right than the end position
+		// We swap them so the difference from start to end always remains positive
+		if (lineStartPosX > lineEndPosX) {
+			
+			tempSwap = lineStartPosX;
+			lineStartPosX = lineEndPosX;
+			lineEndPosX = tempSwap;
+			
+			tempSwap = lineStartPosY;
+			lineStartPosY = lineEndPosY;
+			lineEndPosY = tempSwap;
+			
+			
+		}
+		
+		// Absolute difference between the start and end position on the X axis
+		// The distance we have to traverse on the X axis until we complete the line detection
+		int deltaX = lineEndPosX - lineStartPosX;
+		// Absolute difference between the start and end position on the Y axis
+		// Not as important as X axis since Y is worked as a secondary axis we change when error accumulator
+		// becomes too big
+		// The distance we have to traverse on the Y axis until we complete the line detection
+		int deltaY = Math.Abs(lineEndPosY - lineStartPosY);
+		
+		// The step amount in the Y axis
+		int stepY;
+		
+		// The error accumlulator
+		int error = 0;
+		
+		// Default to going up one step on the Y tile position
+		stepY = -1;
+		// If the start pos Y is smaller than the end one that means the start position is above the end position
+		if (lineStartPosY < lineEndPosY) {
+			// So we need to go down not up
+			stepY = +1;
+		}
+		
+		
+		// The tile position we are currently in
+		int posY = lineStartPosY;
+		int posX = lineStartPosX;
+		
+		//! TODO: Check before moving so we don't do tile collision detection
+		// Do a while since there is the possibility we are not moving
+		while (posX <= lineEndPosX) {
+			
+			TileData tile = null;
+			
+			// If the line is steep we need to get the Tile using inverted positions since we inverted them at the begining
+			if (steep) {
+				
+				// Grab terrain info
+				// Point(posY,posX);
+				Vector2I tilePos = new Vector2I(posY, posX);
+				tile = this.tilemap.GetCellTileData(0, tilePos);
+				
+				// Record position of where we found the tile reversed
+				tileResponse.tileTopPosX = posY;
+				tileResponse.tileTopPosY = posX;
+				
+			} else {
+				
+				// If not inverted just grab them normally
+				
+				// Grab terrain info 
+				// Point(posX,posY);
+				Vector2I tilePos = new Vector2I(posX, posY);
+				tile = this.tilemap.GetCellTileData(0, tilePos);
+				
+				// Record position of where we found the tile
+				tileResponse.tileTopPosX = posX;
+				tileResponse.tileTopPosY = posY;
+				
+				
+			}
+			
+			
+			// If tile not null or empty return it
+			if (tile != null) {
+					
+				if(tile.Terrain != TILETYPE_EMPTY) {
+					// We found a possible tile
+					tileResponse.tileData = tile;
+					return tileResponse;
+				}
+					
+			}
+			
+			
+			
+			// Add the deltaY to the error accumulator
+			error = error + deltaY;
+			
+			// Since we are working with only integers we need to multiply the error accumulator by 2
+			// to get a makeshift precision.
+			// If the error accumulator is now outside the deltaX trajectory
+			if (2 * error >= deltaX) {
+				
+				// We need to move the posY into the correct trajectory
+				// by going one step above, or bellow
+				posY = posY + stepY;
+				// Error has been dealt with, we can look for a new one
+				error = error - deltaX;
+			}
+			
+			// Move to the next horizontal tile
+			posX = posX + 1;
+		}
+		
+		// No tile that could be collided found
+		return null;
+		
+	}
+	
+	
+	
+	
+	
+	// A line check with tilemap for vertical tiles
+	public TileCollisionResponse tileCollision_lineVert(int lineStartPosX, int lineStartPosY, 
+									   					int lineEndPosX, int lineEndPosY) {
+		
+		
+		
+		TileCollisionResponse tileResponse = new TileCollisionResponse();
+		
+		// The steep value, since we cannot move sub tiles we build up a steep value until it's
+		// big enough to go to the next tile
+		
+		
+		bool steep = Math.Abs(lineEndPosY - lineStartPosY) > Math.Abs(lineEndPosX - lineStartPosX);
+		
+		
+		int tempSwap;
+		
+		// If the line is more vertical than horizontal
+		if (steep) {
+			// We "rotate" the horizontal line we will draw,
+			// so vertical line becomes the horizontal one
+			tempSwap = lineStartPosX;
+			lineStartPosX = lineStartPosY;
+			lineStartPosY = tempSwap;
+			
+			tempSwap = lineEndPosX;
+			lineEndPosX = lineEndPosY;
+			lineEndPosY = tempSwap;
+			
+		}
+		
+		// If the start position is more to the right than the end position
+		// We swap them so the difference from start to end always remains positive
+		if (lineStartPosX > lineEndPosX) {
+			
+			tempSwap = lineStartPosX;
+			lineStartPosX = lineEndPosX;
+			lineEndPosX = tempSwap;
+			
+			tempSwap = lineStartPosY;
+			lineStartPosY = lineEndPosY;
+			lineEndPosY = tempSwap;
+			
+			
+		}
+		
+		// Absolute difference between the start and end position on the X axis
+		// The distance we have to traverse on the X axis until we complete the line detection
+		int deltaX = lineEndPosX - lineStartPosX;
+		// Absolute difference between the start and end position on the Y axis
+		// Not as important as X axis since Y is worked as a secondary axis we change when error accumulator
+		// becomes too big
+		// The distance we have to traverse on the Y axis until we complete the line detection
+		int deltaY = Math.Abs(lineEndPosY - lineStartPosY);
+		
+		// The step amount in the Y axis
+		int stepY;
+		
+		// The error accumlulator
+		int error = 0;
+		
+		// Default to going up one step on the Y tile position
+		stepY = -1;
+		// If the start pos Y is smaller than the end one that means the start position is above the end position
+		if (lineStartPosY < lineEndPosY) {
+			// So we need to go down not up
+			stepY = +1;
+		}
+		
+		
+		// The tile position we are currently in
+		int posY = lineStartPosY;
+		int posX = lineStartPosX;
+		
+		//! TODO: Check before moving so we don't do tile collision detection
+		// Do a while since there is the possibility we are not moving
+		while (posX <= lineEndPosX) {
+			
+			TileData tile = null;
+			
+			// If the line is steep we need to get the Tile using inverted positions since we inverted them at the begining
+			if (steep) {
+				
+				// Grab terrain info
+				tileResponse = tileCollision_getAndCheckTileAt(tileResponse, posY, posX);
+				// If tile not null or empty return it
+				if (tileResponse.tileData != null) {	
+					this.sensorUsedForVertCollision = TILESENSOR_VERT_MID;
+					return tileResponse;
+				} 
+				
+				// If the tile is null look to the left and right before going to the next line
+				
+				// Grab terrain info
+				tileResponse = tileCollision_getAndCheckTileAt(tileResponse, posY - 1, posX);
+				// If tile not null or empty return it
+				if (tileResponse.tileData != null) {	
+					this.sensorUsedForVertCollision = TILESENSOR_VERT_LEFT;
+					return tileResponse;
+				} 
+				
+				// Grab terrain info
+				tileResponse = tileCollision_getAndCheckTileAt(tileResponse, posY + 1, posX);
+				// If tile not null or empty return it
+				if (tileResponse.tileData != null) {	
+					this.sensorUsedForVertCollision = TILESENSOR_VERT_RIGHT;
+					return tileResponse;
+				} 
+				
+				
+				
+				
+			} else {
+				
+				// If not inverted just grab them normally
+				
+				// Grab terrain info
+				tileResponse = tileCollision_getAndCheckTileAt(tileResponse, posX, posY);
+				// If tile not null or empty return it
+				if (tileResponse.tileData != null) {	
+					this.sensorUsedForVertCollision = TILESENSOR_VERT_MID;
+					return tileResponse;
+				} 
+				
+				// If the tile is null look to the left and right before going to the next line
+				
+				// Grab terrain info
+				tileResponse = tileCollision_getAndCheckTileAt(tileResponse, posX - 1, posY);
+				if (tileResponse.tileData != null) {	
+					this.sensorUsedForVertCollision = TILESENSOR_VERT_LEFT;
+					return tileResponse;
+				} 
+				
+				// Grab terrain info
+				tileResponse = tileCollision_getAndCheckTileAt(tileResponse, posX + 1, posY);
+				if (tileResponse.tileData != null) {	
+					this.sensorUsedForVertCollision = TILESENSOR_VERT_RIGHT;
+					return tileResponse;
+				} 
+				
+				
+			}
+			
+			
+			
+			
+			
+			
+			// Add the deltaY to the error accumulator
+			error = error + deltaY;
+			
+			// Since we are working with only integers we need to multiply the error accumulator by 2
+			// to get a makeshift precision.
+			// If the error accumulator is now outside the deltaX trajectory
+			if (2 * error >= deltaX) {
+				
+				// We need to move the posY into the correct trajectory
+				// by going one step above, or bellow
+				posY = posY + stepY;
+				// Error has been dealt with, we can look for a new one
+				error = error - deltaX;
+			}
+			
+			// Move to the next horizontal tile
+			posX = posX + 1;
+		}
+		
+		// No tile that could be collided found
+		return null;
+		
+	}
+	
+	
 	
 	// A line check with the tile map
 	// Returns the first found tile data on the line path
